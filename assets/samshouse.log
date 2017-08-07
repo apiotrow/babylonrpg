@@ -7,15 +7,15 @@
 		texture directory:  D:\code\babylonrpg\assets\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  samshouse
+	processing begun of mesh:  shouse
 		WARNING: No materials have been assigned: 
-		num positions      :  12010
-		num normals        :  12010
+		num positions      :  14799
+		num normals        :  14799
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  48040
-		num indices        :  50952
+		num colors         :  59196
+		num indices        :  61644
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.4747 secs
+elapsed time:  0 min, 0.535 secs

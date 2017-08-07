@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		var assetsManager = new BABYLON.AssetsManager(scene)
 		assetsManager.useDefaultLoadingScreen = false
-		var meshTask = assetsManager.addMeshTask("skulltask", "", "./assets/", "samshouse.babylon")
+		var meshTask = assetsManager.addMeshTask("skulltask", "", "./assets/", "bugsports.babylon")
 		meshTask.onSuccess = function (task) {
 			// var shaderMaterial = new BABYLON.ShaderMaterial("shader", scene, {
 		 //        vertex: "custom",
@@ -184,11 +184,13 @@ document.addEventListener('DOMContentLoaded', function () {
 				task.loadedMeshes[i].convertToFlatShadedMesh()
 			}
 
-			for(let i = 0; i < 20; i++){
-    			for(let j = 0; j < 20; j++){
+			let d = 10
+			let spacing = 150
+			for(let i = 0; i < d; i++){
+    			for(let j = 0; j < d; j++){
     				var newInstance = task.loadedMeshes[0].createInstance("index: " + i + "" + j)
-    				newInstance.position.x =+ i * 70
-    				newInstance.position.z =+ j * 70
+    				newInstance.position.x =+ i * spacing
+    				newInstance.position.z =+ j * spacing
 
     	// 			newInstance.enableEdgesRendering()
 				 //   	newInstance.edgesWidth = 30.0;
@@ -202,8 +204,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		var test
 		assetsManager.onFinish = function(tasks) {
-         	test = new test(engine, canvas, scene)
+         	test = new test(engine, canvas, scene, tasks)
      	}
+
 
 		
 
