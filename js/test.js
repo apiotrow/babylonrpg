@@ -1,5 +1,6 @@
 var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
+
 class test{
 	constructor(engine, canvas, scene, tasks){
 		// let model = task.loadedMeshes[0]
@@ -14,17 +15,20 @@ class test{
 			D: 68
 		}
 
-		scene.clearColor = new BABYLON.Color3(0, 0, 0)
+		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		// BABYLON.SceneOptimizer.OptimizeAsync(scene, BABYLON.SceneOptimizerOptions.LowDegradationAllowed())
-		var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 200, -100), scene)
+		var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
+
+		this.camera = camera
 		camera.target = new BABYLON.Vector3(150, 150, 150)
 		// camera.inputs.add(new BABYLON.FreeCameraKeyboardMoveInput())
 		
+		// let orthoSize = 100
 		// camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-		// camera.orthoTop = 50;
-		// camera.orthoBottom = -50;
-		// camera.orthoLeft = -50;
-		// camera.orthoRight = 50
+		// camera.orthoTop = orthoSize;
+		// camera.orthoBottom = -orthoSize;
+		// camera.orthoLeft = -orthoSize;
+		// camera.orthoRight = orthoSize
 		
 
 		// var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
@@ -64,11 +68,12 @@ class test{
 	    camera.setTarget(BABYLON.Vector3.Zero())
 	    camera.attachControl(canvas, false)
 
-	    // var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene)
-	    var light = new BABYLON.DirectionalLight("light1", new BABYLON.Vector3(.2, -1, .5), scene)
-	    var light2 = new BABYLON.DirectionalLight("light2", new BABYLON.Vector3(-.8, -1, -.2), scene)
-	    light.intensity = 2
-	    light2.intensity = 1
+	    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene)
+	    // var light = new BABYLON.DirectionalLight("light1", new BABYLON.Vector3(.2, -1, .5), scene)
+	    // var light2 = new BABYLON.DirectionalLight("light2", new BABYLON.Vector3(-.8, -1, -.2), scene)
+	    light.intensity = 3
+	    // light2.intensity = 1
+	    
 
 	    // var sphere = BABYLON.Mesh.CreateCylinder("box", 4.0, 2.0, 2.0, 0, 0,
 	    // 	scene, false, BABYLON.Mesh.DEFAULTSIDE)
@@ -94,7 +99,8 @@ class test{
 		// }
 		// console.log(scene.beginAnimation(this.tasks[0].loadedMeshes[0], 0, 10, 1, 1.0))
 		
-		var cell = new BABYLON.CellMaterial("cell", scene)
+		// var cell = new BABYLON.CellMaterial("cell", scene)
+		var cell = new BABYLON.StandardMaterial("cell", scene)
 			
 		cell.diffuseTexture = new BABYLON.Texture("./assets/3dd.jpg", scene)
 		cell.computeHighLevel = true
@@ -117,25 +123,52 @@ class test{
 		let spacing = 15
 		for(let i in meshes){
 			let mesh = meshes[i]
-			// task.loadedMeshes[i].useVertexColors = true
-			mesh.material = cell
 
+			mesh.material = cell
 			mesh.convertToFlatShadedMesh()
+
+			if(mesh.name == "tree" || mesh.name == "grass"
+				|| mesh.name == "water"){
+				continue
+				mesh.position.y = 1000
+			}
+
+			// task.loadedMeshes[i].useVertexColors = true
+			
+
+			// mesh.outlineWidth = 0.15
+			// mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+			// mesh.renderOutline = true
+
+			
 			mesh.position.x = Math.floor(Math.random() * d) * spacing
 			mesh.position.z = Math.floor(Math.random() * d) * spacing
 			mesh.position.y = 1
 		}
 
 		
-		
+		let groundArr = []
 		const h = perlin.generatePerlinNoise(d, d)
 		for(let i = 0; i < d * d; i++){
 			var newInstance 
 
-			if(h[i] < 0.5)
+			if(h[i] < 0.5){
 				newInstance = meshes.grass.createInstance("index: " + i)
-			else
+				// newInstance = meshes.grass.clone("index: " + i)
+			}
+			else if(h[i] < 0.7){
 				newInstance = meshes.tree.createInstance("index: " + i)
+				// newInstance = meshes.tree.clone("index: " + i)
+			}else {
+				newInstance = meshes.water.createInstance("index: " + i)
+				// newInstance = meshes.tree.clone("index: " + i)
+			}
+
+
+
+			// newInstance.outlineWidth = 0.15
+			// newInstance.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+			// newInstance.renderOutline = true
 
 			//column
 			newInstance.position.x = (i % d) * spacing
@@ -143,7 +176,14 @@ class test{
 			//row
 			newInstance.position.z = (Math.floor(i / d) * spacing)
 			newInstance.position.y = 0
+
+			groundArr.push(newInstance)
 		}
+
+		// let groundMesh = BABYLON.Mesh.MergeMeshes(groundArr, true)
+		// groundMesh.outlineWidth = 0.15
+		// groundMesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+		// groundMesh.renderOutline = true
 
 		// for(let i = 0; i < d; i++){
 		// 	for(let j = 0; j < d; j++){
@@ -169,6 +209,12 @@ class test{
 		this.scene.render()
 
 		if(this.keyState['r'] == true){
+			// console.log(this.camera.target)
+			this.camera.position.z += 1
+			// let z = this.camera.target.z
+			// z += 1
+			// this.camera.target = new BABYLON.Vector3(
+			// 	this.camera.target.x, this.camera.target.y, z)
 			// this.tasks[0].loadedMeshes[0].rotation.y += 0.05
 		}
 	}

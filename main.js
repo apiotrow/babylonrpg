@@ -1,5 +1,7 @@
+
+
 document.addEventListener('DOMContentLoaded', function () {
-	// var BABYLON = require('babylonjs')
+	var BABYLON = require('babylonjs')
 	// var BABYLON = require('./node_modules/babylonjs/dist/preview release/babylon.max.js')
 	var test = require('./js/test.js')
 	// var CellMaterial = require('./assets/babylon.cellMaterial.js')
@@ -53,7 +55,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		assetsManager.addMeshTask("bugsports", "", "./assets/", "models/bugsports.babylon")
 		assetsManager.addMeshTask("bugsports2", "", "./assets/", "models/bugsports2.babylon")
 		assetsManager.addMeshTask("chamonix", "", "./assets/", "models/chamonix.babylon")
-
+		assetsManager.addMeshTask("concrete", "", "./assets/", "models/concrete.babylon")
+		assetsManager.addMeshTask("water", "", "./assets/", "models/water.babylon")
+		assetsManager.addMeshTask("chad", "", "./assets/", "models/chad.babylon")
 
 		// var grassTask = assetsManager.addMeshTask("grass", "", "./assets/", "models/grass.babylon")
 		// grassTask.onSuccess = function (task) {
@@ -76,9 +80,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		// 		// task.loadedMeshes[i].useVertexColors = true
 		// 		task.loadedMeshes[i].material = cell
 
-		// 		// task.loadedMeshes[i].outlineWidth = 0.15
-		// 		// task.loadedMeshes[i].outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-		// 		// task.loadedMeshes[i].renderOutline = true
+				// task.loadedMeshes[i].outlineWidth = 0.15
+				// task.loadedMeshes[i].outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+				// task.loadedMeshes[i].renderOutline = true
 				
 		// 		// task.loadedMeshes[i].enableEdgesRendering()
 		// 		// task.loadedMeshes[i].edgesWidth = 30.0;
@@ -108,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		var test
 		assetsManager.onFinish = function(tasks) {
          	test = new test(engine, canvas, scene, tasks)
+         	
      	}
 
 
