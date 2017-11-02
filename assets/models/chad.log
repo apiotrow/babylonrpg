@@ -9,13 +9,13 @@
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  chad
 		WARNING: No materials have been assigned: 
-		num positions      :  360
-		num normals        :  360
+		num positions      :  565
+		num normals        :  565
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  1440
-		num indices        :  1824
+		num colors         :  2260
+		num indices        :  2784
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0336 secs
+elapsed time:  0 min, 0.0441 secs

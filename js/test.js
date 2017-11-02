@@ -68,12 +68,43 @@ class test{
 	    camera.setTarget(BABYLON.Vector3.Zero())
 	    camera.attachControl(canvas, false)
 
-	    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene)
-	    // var light = new BABYLON.DirectionalLight("light1", new BABYLON.Vector3(.2, -1, .5), scene)
-	    // var light2 = new BABYLON.DirectionalLight("light2", new BABYLON.Vector3(-.8, -1, -.2), scene)
-	    light.intensity = 3
-	    // light2.intensity = 1
+	    let angles = 0.15
+	    let yAngles = 1
+	    let lightLevel = 0.3
+
+	    // var light = new BABYLON.HemisphericLight("light1", 
+	    // 	new BABYLON.Vector3(angles, yAngles, angles), scene)
+	    // light.intensity = lightLevel
+
+	    // var light2 = new BABYLON.HemisphericLight("light2", 
+	    // 	new BABYLON.Vector3(-angles, yAngles, -angles), scene)
+	    // light2.intensity = lightLevel
+
+	    // var light3 = new BABYLON.HemisphericLight("light3", 
+	    // 	new BABYLON.Vector3(angles, yAngles, -angles), scene)
+	    // light3.intensity = lightLevel
+
+	    // var light4 = new BABYLON.HemisphericLight("light3", 
+	    // 	new BABYLON.Vector3(-angles, yAngles, angles), scene)
+	    // light4.intensity = lightLevel
+
+	    var light5 = new BABYLON.HemisphericLight("light3", 
+	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
+	    light5.intensity = 1.5
+
 	    
+	    // let NWlight = new BABYLON.DirectionalLight("NWlight", 
+	    // 	new BABYLON.Vector3(angles, -1, angles), scene)
+	    // NWlight.intensity = 3
+	    // let SWlight = new BABYLON.DirectionalLight("SWlight", 
+	    // 	new BABYLON.Vector3(-angles, -yAngles, -angles), scene)
+	    // SWlight.intensity = 1
+	    // let SElight = new BABYLON.DirectionalLight("SElight", 
+	    // 	new BABYLON.Vector3(-angles, -yAngles, -angles), scene)
+	    // SElight.intensity = 0.5
+	    // let NElight = new BABYLON.DirectionalLight("NElight", 
+	    // 	new BABYLON.Vector3(angles/3, -yAngles, angles/3), scene)
+	    // NElight.intensity = 0.2
 
 	    // var sphere = BABYLON.Mesh.CreateCylinder("box", 4.0, 2.0, 2.0, 0, 0,
 	    // 	scene, false, BABYLON.Mesh.DEFAULTSIDE)
@@ -101,71 +132,88 @@ class test{
 		
 		// var cell = new BABYLON.CellMaterial("cell", scene)
 		var cell = new BABYLON.StandardMaterial("cell", scene)
+		// cell.specularPower = 1
+		// cell.useEmissiveAsIllumination = false
+		cell.specularColor = BABYLON.Color3.Black()
 			
-		cell.diffuseTexture = new BABYLON.Texture("./assets/3dd.jpg", scene)
-		cell.computeHighLevel = true
-		cell.diffuseTexture.uScale = cell.diffuseTexture.vScale = 3
+		// cell.diffuseTexture = new BABYLON.Texture("./assets/3dd.jpg", scene)
+		// cell.computeHighLevel = true
+		// cell.diffuseTexture.uScale = cell.diffuseTexture.vScale = 3
 
 		console.log(tasks)
 
-		let meshes = {}
+		this.meshes = {}
 		for(let i = 0; i < tasks.length; i++){
 			let meshName = tasks[i].name
 			let mesh = tasks[i].loadedMeshes[0]
 
-			meshes[meshName] = mesh
+			this.meshes[meshName] = mesh
 		}
 
-		console.log(meshes)
+		
 
 
-		let d = 50
+		let d = 30
 		let spacing = 15
-		for(let i in meshes){
-			let mesh = meshes[i]
+		this.rotateMeshes = []
+		for(let i in this.meshes){
+			let mesh = this.meshes[i]
 
 			mesh.material = cell
 			mesh.convertToFlatShadedMesh()
 
+			mesh.useVertexColors = true
+			mesh.outlineWidth = 0.15
+			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+			mesh.renderOutline = true
+
 			if(mesh.name == "tree" || mesh.name == "grass"
-				|| mesh.name == "water"){
-				continue
+				|| mesh.name == "water")
+			{
+				
 				mesh.position.y = 1000
+				// mesh.rotation.x = Math.random() * 360
+				continue
+			}
+			else{
+				 
 			}
 
-			// task.loadedMeshes[i].useVertexColors = true
-			
 
-			// mesh.outlineWidth = 0.15
-			// mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-			// mesh.renderOutline = true
+
+
 
 			
 			mesh.position.x = Math.floor(Math.random() * d) * spacing
 			mesh.position.z = Math.floor(Math.random() * d) * spacing
 			mesh.position.y = 1
+
+			this.rotateMeshes.push(mesh)
 		}
+
+		console.log(this.rotateMeshes)
 
 		
 		let groundArr = []
 		const h = perlin.generatePerlinNoise(d, d)
+		this.changeMeshes = []
 		for(let i = 0; i < d * d; i++){
 			var newInstance 
 
 			if(h[i] < 0.5){
-				newInstance = meshes.grass.createInstance("index: " + i)
-				// newInstance = meshes.grass.clone("index: " + i)
+				newInstance = this.meshes.grass.createInstance("index: " + i)
+				// newInstance = this.meshes.grass.clone("index: " + i)
 			}
 			else if(h[i] < 0.7){
-				newInstance = meshes.tree.createInstance("index: " + i)
-				// newInstance = meshes.tree.clone("index: " + i)
+				newInstance = this.meshes.tree.createInstance("index: " + i)
+				// newInstance = this.meshes.tree.clone("index: " + i)
 			}else {
-				newInstance = meshes.water.createInstance("index: " + i)
-				// newInstance = meshes.tree.clone("index: " + i)
+				newInstance = this.meshes.water.createInstance("index: " + i)
+				// newInstance = this.meshes.tree.clone("index: " + i)
 			}
 
 
-
+			// newInstance.useVertexColors = true
 			// newInstance.outlineWidth = 0.15
 			// newInstance.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
 			// newInstance.renderOutline = true
@@ -178,7 +226,10 @@ class test{
 			newInstance.position.y = 0
 
 			groundArr.push(newInstance)
+
+			this.changeMeshes.push(newInstance)
 		}
+
 
 		// let groundMesh = BABYLON.Mesh.MergeMeshes(groundArr, true)
 		// groundMesh.outlineWidth = 0.15
@@ -198,9 +249,9 @@ class test{
 		// 		newInstance.position.x =+ i * spacing
 		// 		newInstance.position.z =+ j * spacing
 
-		// 		// newInstance.enableEdgesRendering()
-		// 	 //   	newInstance.edgesWidth = 30.0;
-		// 		// newInstance.edgesColor = new BABYLON.Color4(0, 0, 0, 1)
+				// newInstance.enableEdgesRendering()
+			 //   	newInstance.edgesWidth = 30.0;
+				// newInstance.edgesColor = new BABYLON.Color4(0, 0, 0, 1)
 		// 	}
 		// }
 	}
@@ -216,6 +267,18 @@ class test{
 			// this.camera.target = new BABYLON.Vector3(
 			// 	this.camera.target.x, this.camera.target.y, z)
 			// this.tasks[0].loadedMeshes[0].rotation.y += 0.05
+			
+			this.changeMeshes[Math.floor(Math.random() * this.changeMeshes.length)] 
+			= this.meshes.tree.createInstance(Math.random())
+		}
+
+		for(let mesh in this.rotateMeshes){
+			// console.log(this.rotateMeshes[mesh])
+			// this.rotateMeshes[mesh].rotation.y += 0.01
+			
+			// this.rotateMeshes[mesh].dispose()
+			// this.rotateMeshes[mesh] = this.meshes.tree.clone()
+			// this.rotateMeshes[mesh].position.y = Math.random() * 100
 		}
 	}
 }

@@ -9,13 +9,13 @@
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  bugsports2
 		WARNING: No materials have been assigned: 
-		num positions      :  5745
-		num normals        :  5745
+		num positions      :  4563
+		num normals        :  4563
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  22980
-		num indices        :  20271
+		num colors         :  18252
+		num indices        :  16836
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.2356 secs
+elapsed time:  0 min, 0.1845 secs

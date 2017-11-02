@@ -7,15 +7,15 @@
 		texture directory:  D:\code\babylonrpg\assets\models\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  chamonix
+	processing begun of mesh:  tree
 		WARNING: No materials have been assigned: 
-		num positions      :  9423
-		num normals        :  9423
+		num positions      :  428
+		num normals        :  428
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  37692
-		num indices        :  40062
+		num colors         :  1712
+		num indices        :  2160
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.36 secs
+elapsed time:  0 min, 0.0387 secs
