@@ -25,5 +25,4 @@ bmesh.ops.triangulate(bm, faces=bm.faces[:], quad_method=0, ngon_method=0)
 bmesh.update_edit_mesh(me, True)
 
 # export file
-# bpy.ops.scene.babylon(filepath="D:\\code\\mcopt\\" + argv[0], use_normals=False)
 bpy.ops.export_mesh.ply(filepath="D:\\code\\babylonrpg\\" + argv[0], use_normals=False)

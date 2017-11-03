@@ -5,11 +5,15 @@
 var fs = require('fs')
 var exec = require('child_process').exec
 var recursive = require('recursive-readdir')
+let jsonfile = require('jsonfile')
 
 var ply
 
 //directory of marching cube plys
-let plyDir = "assets/offline/"
+let plyDir = "assets/offline/plys/"
+
+//glossary of assets
+let gloss = {}
 
 //get all ply files with their directory paths
 var mcs = []
@@ -107,20 +111,34 @@ function reduceFiles(){
 						    	+ file
 						    	+ " " + pathForBabylon + "\\\\" + fileName + ".babylon"
 
+						    	//e.g. assest/models/gear/helmets/pike.babylon
+						    	let pathForGloss = "./" 
+						    	+ pathForBabylon.replace(/\\\\/g, "/")
+						    	+ "/" + fileName + ".babylon"
+	
+								//add entry for model in glossary object
+						    	assignObject(gloss, ['models', fileName, "path"], pathForGloss)
+
 						    	//execute blender face reduction script
 								exec(babylonCMD, function(error, stdout, stderr) {
-
+									resolve()
 								})
 						    })
 						})
 					})
 			    })
 			})
+
 		}))
 	}
 
 	Promise.all(promises).then(function(){
 		console.log("all done")
+		
+		//output glossary json
+		jsonfile.writeFile("assets/gloss.json", gloss, {spaces: 4}, function(err) {
+			
+		})
 	})
 
 
@@ -312,4 +330,53 @@ function reduceFiles(){
 
 		return returnPly
 	}
+}
+
+/**
+ * Shove an object into a nested object
+ * 
+ * @param  {[type]}
+ * @param  {[type]}
+ * @param  {[type]}
+ * @return {[type]}
+ */
+function assignObject(obj, keyPath, value) {
+	let lastKeyIndex = keyPath.length - 1
+
+	for (let i = 0; i < lastKeyIndex; i++) {
+		let key = keyPath[i]
+		if (!(key in obj))
+			obj[key] = {}
+		obj = obj[key]
+	}
+	obj[keyPath[lastKeyIndex]] = value
+}
+
+/**
+ * Shove an array into a nested object
+ * 
+ * @param  {[type]}
+ * @param  {[type]}
+ * @param  {[type]}
+ * @return {[type]}
+ */
+function assignArray(obj, keyPath, value) {
+	let lastKeyIndex = keyPath.length - 1
+
+	for (let i = 0; i < lastKeyIndex; i++) {
+		let key = keyPath[i]
+		if (!(key in obj))
+			obj[key] = {}
+
+		obj = obj[key]
+	}
+
+	//make new array if it doesn't exist
+	//(first addition it won't)
+	if(obj[keyPath[lastKeyIndex]] === undefined)
+		obj[keyPath[lastKeyIndex]] = []
+
+	//don't add duplicates
+	if(obj[keyPath[lastKeyIndex]].indexOf(value) == -1)
+		obj[keyPath[lastKeyIndex]].push(value)
 }

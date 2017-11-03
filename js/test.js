@@ -120,7 +120,7 @@ class test{
 				mesh.position.y = 1000
 				continue
 			}
-			else if(mesh.name == "chad"){
+			else if(mesh.name == "chad.mc"){
 				 this.player = mesh
 			}
 
@@ -190,8 +190,8 @@ class test{
 			// this.rotateMeshes[mesh].position.y = Math.random() * 100
 		}
 
-
-		this.camera.setTarget(this.player.position)
+		if(this.player !== undefined)
+			this.camera.setTarget(this.player.position)
 		if(this.keyState['w'] == true){
 			this.player.position.x += 1
 		}

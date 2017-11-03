@@ -1,0 +1,16 @@
+{
+    "models": {
+        "wall1": {
+            "path": "./assets/models/building/wall1.babylon"
+        },
+        "roof1": {
+            "path": "./assets/models/building/roof1.babylon"
+        },
+        "chad": {
+            "path": "./assets/models/char/chad.babylon"
+        },
+        "bugsports2": {
+            "path": "./assets/models/building/bugsports2.babylon"
+        }
+    }
+}
