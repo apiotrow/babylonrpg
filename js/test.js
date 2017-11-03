@@ -13,12 +13,28 @@ class test{
 			D: 68
 		}
 
+		this.player
+
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		// BABYLON.SceneOptimizer.OptimizeAsync(scene, BABYLON.SceneOptimizerOptions.LowDegradationAllowed())
-		var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
+		// var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
+		var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
+		console.log(camera)
+		camera.inputs.attached.keyboard.detachControl()
+		// camera.inputs.attached.keyboard.keysUp = []
+		// camera.inputs.attached.keyboard.keysDown= []
+		// console.log(camera.inputs)
+
+		// camera.inputs.attached.keyboard.keysDown.push(keyCodes.S)
+		// camera.inputs.attached.keyboard.keysUp.push(keyCodes.W)
+		// camera.inputs.attached.keyboard.keysLeft.push(keyCodes.A)
+		// camera.inputs.attached.keyboard.keysRight.push(keyCodes.D)
+
+	 //    camera.setTarget(BABYLON.Vector3.Zero())
+	    camera.attachControl(canvas, false)
 
 		this.camera = camera
-		camera.target = new BABYLON.Vector3(150, 150, 150)
+		// camera.target = new BABYLON.Vector3(150, 150, 150)
 		// camera.inputs.add(new BABYLON.FreeCameraKeyboardMoveInput())
 		
 		// let orthoSize = 100
@@ -58,13 +74,6 @@ class test{
 	        handler: onKeyUp
 	    }])
 
-		camera.inputs.attached.keyboard.keysDown.push(keyCodes.S)
-		camera.inputs.attached.keyboard.keysUp.push(keyCodes.W)
-		camera.inputs.attached.keyboard.keysLeft.push(keyCodes.A)
-		camera.inputs.attached.keyboard.keysRight.push(keyCodes.D)
-
-	    camera.setTarget(BABYLON.Vector3.Zero())
-	    camera.attachControl(canvas, false)
 
 	    let angles = 0.15
 	    var light5 = new BABYLON.HemisphericLight("light3", 
@@ -93,6 +102,7 @@ class test{
 		let d = 30
 		let spacing = 15
 		this.rotateMeshes = []
+		
 		for(let i in this.meshes){
 			let mesh = this.meshes[i]
 
@@ -110,8 +120,8 @@ class test{
 				mesh.position.y = 1000
 				continue
 			}
-			else{
-				 
+			else if(mesh.name == "chad"){
+				 this.player = mesh
 			}
 
 			mesh.position.x = Math.floor(Math.random() * d) * spacing
@@ -178,6 +188,12 @@ class test{
 			// this.rotateMeshes[mesh].dispose()
 			// this.rotateMeshes[mesh] = this.meshes.tree.clone()
 			// this.rotateMeshes[mesh].position.y = Math.random() * 100
+		}
+
+
+		this.camera.setTarget(this.player.position)
+		if(this.keyState['w'] == true){
+			this.player.position.x += 1
 		}
 	}
 }

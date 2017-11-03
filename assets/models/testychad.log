@@ -4,7 +4,7 @@
 		selected layers only:  false
 		flat shading entire scene:  false
 		inline textures:  false
-		texture directory:  D:\code\babylonrpg\\assets\models\
+		texture directory:  D:\code\babylonrpg\assets\\models\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
 	processing begun of mesh:  chad.mc
@@ -18,4 +18,4 @@
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0246 secs
+elapsed time:  0 min, 0.0236 secs

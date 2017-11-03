@@ -5,7 +5,8 @@ argv = sys.argv
 argv = argv[argv.index("--") + 1:]  # get all args after "--"
 print(argv)  # --> ['example', 'args', '123']
 
-# import file
-bpy.ops.import_mesh.ply(filepath="D:\\code\\babylonrpg\\assets\\plys\\" + argv[0] + ".ply")
+# import ply
+bpy.ops.import_mesh.ply(filepath="D:\\code\\babylonrpg\\" + argv[0])
 
-bpy.ops.scene.babylon(filepath="D:\\code\\babylonrpg\\assets\\models\\" + argv[0] + ".babylon")
+# output babylon
+bpy.ops.scene.babylon(filepath="D:\\code\\babylonrpg\\" + argv[1])

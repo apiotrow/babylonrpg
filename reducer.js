@@ -8,17 +8,19 @@ var recursive = require('recursive-readdir')
 
 var ply
 
-let plyDir = "assets/plys/"
-let outputDir = "/assets/models"
+//directory of marching cube plys
+let plyDir = "assets/offline/"
 
-var mcs = [];
+//get all ply files with their directory paths
+var mcs = []
 new Promise(function(resolve, reject) {
 	recursive("./" + plyDir, [], function (err, files) {
 		files.forEach(file => {
 			if(file.indexOf(".ply") != -1){
-				mcs.push(file.replace(/\\/g, "/").replace(plyDir, ""))
+				let fileWithPath = file.replace(/\\/g, "/")
+				mcs.push(fileWithPath)
 			}
-		});
+		})
 		console.log(mcs)
 		resolve()
 	})
@@ -30,49 +32,85 @@ function reduceFiles(){
 	var promises = []
 
 	for(var i = 0; i < mcs.length; i++){
-		var f = plyDir + mcs[i]
+
+		//intermediary to let promise use strings in mc
+		var tempHolder = mcs[i]
 
 		promises.push(new Promise(function(resolve, reject) {
-			var fer = f
+			var file = tempHolder
 
 			//get input file
-			fs.readFile(fer, 'utf8', function read(err, data){
+			fs.readFile(file, 'utf8', function read(err, data){
 				ply = data
 				ply = reduceVerts(ply)
 				
 				//write reduced vert file
-				fs.writeFile(fer.replace(".mc", ""), ply, (err)=>{
-			    	if(err) throw err;
+				fs.writeFile(file, ply, (err)=>{
+			    	if(err) {
+			    		throw err
+			    	}
 
+			    	//command for blender face reduction script
 			    	var cmd = "blender --background --python ./blendissolve.py -- " 
-			    	+ fer.replace(outputDir, "")
-
-			    	console.log(cmd)
+			    	+ file
 
 			    	//execute blender face reduction script
 					exec(cmd, function(error, stdout, stderr) {
-						fs.readFile(fer.replace(outputDir, ""), 'utf8', function read(err, data){
+						fs.readFile(file, 'utf8', function read(err, data){
+
 							if (err) {
-						        throw err;
+						        throw err
 						    }
-						    ply = data;
+
+						    ply = data
 
 						    //reduce precision of verts to reduce file size
 						    ply = reducePrecision(ply)
 
-						    //write new ply file
-						    fs.writeFile("." + fer.replace(outputDir, ""), ply, (err)=>{
-						    	console.log(fer.replace(plyDir, "").replace(".ply", ""))
-						    	var cmd2 = 
-						    	"blender --background --python ./exportbabylon.py -- " 
-						    	+ fer.replace(plyDir, "").replace(".ply", "")
+						    //create babylon file
+						    fs.writeFile("." + file, ply, (err)=>{
+								
+								//e.g. ["gear", "helmets", "pike.mc.ply"]
+						    	let pathArr = file
+						    	.replace(plyDir, "")
+						    	.split('/')
 
-						    	console.log(cmd2)
+						    	//e.g. pike
+						    	let fileName = pathArr[pathArr.length - 1]
+						    	.replace(".mc.ply", "")
+
+						    	//turn gear/helmets/pike.mc.ply
+						    	//into
+						    	//gear\\helmets\\pike
+						    	let pathForPly = file
+						    	.split('/')
+						    	.join('\\\\')
+
+						    	//directory to put babylon in
+						    	//e.g. assets\\models\\gear\\helmets
+						    	let pathForBabylon = "assets\\\\models"
+						    	for(let i = 0; i < pathArr.length - 1; i ++){
+						    		pathForBabylon += "\\\\" + pathArr[i]
+						    	}
+
+						    	//make directory if it doesn't exist.
+						    	//sometimes yields an error that path is not found.
+						    	//just rerun the program over and over until
+						    	//it works.
+						    	if(!fs.existsSync(pathForBabylon)){
+								    fs.mkdirSync(pathForBabylon)
+								}
+
+								//cmd to convert ply to babylon
+						    	var babylonCMD = 
+						    	"blender --background --python ./exportbabylon.py -- " 
+						    	+ file
+						    	+ " " + pathForBabylon + "\\\\" + fileName + ".babylon"
 
 						    	//execute blender face reduction script
-								exec(cmd2, function(error, stdout, stderr) {
+								exec(babylonCMD, function(error, stdout, stderr) {
 
-								});
+								})
 						    })
 						})
 					})
@@ -266,7 +304,6 @@ function reduceFiles(){
 			var newV = vArr[0] + " " + vArr[1] + " " + vArr[2] + " " +
 			vArr[3] + " " + vArr[4] + " " + vArr[5]
 
-			// console.log(newV)
 			returnPly += newV + "\n"
 		}
 		for(var i = 0; i < faces.length; i++){

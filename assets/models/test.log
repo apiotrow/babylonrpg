@@ -4,18 +4,18 @@
 		selected layers only:  false
 		flat shading entire scene:  false
 		inline textures:  false
-		texture directory:  D:\code\babylonrpg\\assets\models\
+		texture directory:  D:\code\babylonrpg\assets\\models\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  chad.mc
+	processing begun of mesh:  bugsports2.mc
 		WARNING: No materials have been assigned: 
-		num positions      :  565
-		num normals        :  565
+		num positions      :  4463
+		num normals        :  4463
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  2260
-		num indices        :  2784
+		num colors         :  17852
+		num indices        :  16329
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0246 secs
+elapsed time:  0 min, 0.1572 secs
