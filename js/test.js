@@ -3,8 +3,6 @@ let perlin = require('perlin-noise')
 
 class test{
 	constructor(engine, canvas, scene, tasks){
-		// let model = task.loadedMeshes[0]
-
 		this.scene = scene
 		this.tasks = tasks
 
@@ -69,51 +67,9 @@ class test{
 	    camera.attachControl(canvas, false)
 
 	    let angles = 0.15
-	    let yAngles = 1
-	    let lightLevel = 0.3
-
-	    // var light = new BABYLON.HemisphericLight("light1", 
-	    // 	new BABYLON.Vector3(angles, yAngles, angles), scene)
-	    // light.intensity = lightLevel
-
-	    // var light2 = new BABYLON.HemisphericLight("light2", 
-	    // 	new BABYLON.Vector3(-angles, yAngles, -angles), scene)
-	    // light2.intensity = lightLevel
-
-	    // var light3 = new BABYLON.HemisphericLight("light3", 
-	    // 	new BABYLON.Vector3(angles, yAngles, -angles), scene)
-	    // light3.intensity = lightLevel
-
-	    // var light4 = new BABYLON.HemisphericLight("light3", 
-	    // 	new BABYLON.Vector3(-angles, yAngles, angles), scene)
-	    // light4.intensity = lightLevel
-
 	    var light5 = new BABYLON.HemisphericLight("light3", 
 	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
 	    light5.intensity = 1.5
-
-	    
-	    // let NWlight = new BABYLON.DirectionalLight("NWlight", 
-	    // 	new BABYLON.Vector3(angles, -1, angles), scene)
-	    // NWlight.intensity = 3
-	    // let SWlight = new BABYLON.DirectionalLight("SWlight", 
-	    // 	new BABYLON.Vector3(-angles, -yAngles, -angles), scene)
-	    // SWlight.intensity = 1
-	    // let SElight = new BABYLON.DirectionalLight("SElight", 
-	    // 	new BABYLON.Vector3(-angles, -yAngles, -angles), scene)
-	    // SElight.intensity = 0.5
-	    // let NElight = new BABYLON.DirectionalLight("NElight", 
-	    // 	new BABYLON.Vector3(angles/3, -yAngles, angles/3), scene)
-	    // NElight.intensity = 0.2
-
-	    // var sphere = BABYLON.Mesh.CreateCylinder("box", 4.0, 2.0, 2.0, 0, 0,
-	    // 	scene, false, BABYLON.Mesh.DEFAULTSIDE)
-	    // sphere.position.y = 1
-	    // let vec = new BABYLON.Vector3(3, 3, 3)
-	    // sphere.lookAt(vec)
-
-
-	    // var ground = BABYLON.Mesh.CreateGround("ground1", 6, 6, 2, scene)
 
 		engine.runRenderLoop( ()=> {
 			this.update()
@@ -123,24 +79,8 @@ class test{
 		    engine.resize()
 		})
 
-		// console.log(this.tasks[0].loadedMeshes[0].animations)
-
-		// for(let i = 0; this.tasks[0].loadedMeshes.length; i++){
-		// 	scene.beginAnimation(this.tasks[0].loadedMeshes[i], 0, 10, 1, 1.0)
-		// }
-		// console.log(scene.beginAnimation(this.tasks[0].loadedMeshes[0], 0, 10, 1, 1.0))
-		
-		// var cell = new BABYLON.CellMaterial("cell", scene)
 		var cell = new BABYLON.StandardMaterial("cell", scene)
-		// cell.specularPower = 1
-		// cell.useEmissiveAsIllumination = false
 		cell.specularColor = BABYLON.Color3.Black()
-			
-		// cell.diffuseTexture = new BABYLON.Texture("./assets/3dd.jpg", scene)
-		// cell.computeHighLevel = true
-		// cell.diffuseTexture.uScale = cell.diffuseTexture.vScale = 3
-
-		console.log(tasks)
 
 		this.meshes = {}
 		for(let i = 0; i < tasks.length; i++){
@@ -149,9 +89,6 @@ class test{
 
 			this.meshes[meshName] = mesh
 		}
-
-		
-
 
 		let d = 30
 		let spacing = 15
@@ -170,20 +107,13 @@ class test{
 			if(mesh.name == "tree" || mesh.name == "grass"
 				|| mesh.name == "water")
 			{
-				
 				mesh.position.y = 1000
-				// mesh.rotation.x = Math.random() * 360
 				continue
 			}
 			else{
 				 
 			}
 
-
-
-
-
-			
 			mesh.position.x = Math.floor(Math.random() * d) * spacing
 			mesh.position.z = Math.floor(Math.random() * d) * spacing
 			mesh.position.y = 1
@@ -212,12 +142,6 @@ class test{
 				// newInstance = this.meshes.tree.clone("index: " + i)
 			}
 
-
-			// newInstance.useVertexColors = true
-			// newInstance.outlineWidth = 0.15
-			// newInstance.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-			// newInstance.renderOutline = true
-
 			//column
 			newInstance.position.x = (i % d) * spacing
 
@@ -229,31 +153,6 @@ class test{
 
 			this.changeMeshes.push(newInstance)
 		}
-
-
-		// let groundMesh = BABYLON.Mesh.MergeMeshes(groundArr, true)
-		// groundMesh.outlineWidth = 0.15
-		// groundMesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-		// groundMesh.renderOutline = true
-
-		// for(let i = 0; i < d; i++){
-		// 	for(let j = 0; j < d; j++){
-		// 		var newInstance 
-
-		// 		if(h[i] < 0.4)
-		// 			newInstance = meshes.grass.createInstance("index: " + i + "" + j)
-		// 		else
-		// 			newInstance = meshes.tree.createInstance("index: " + i + "" + j)
-
-				
-		// 		newInstance.position.x =+ i * spacing
-		// 		newInstance.position.z =+ j * spacing
-
-				// newInstance.enableEdgesRendering()
-			 //   	newInstance.edgesWidth = 30.0;
-				// newInstance.edgesColor = new BABYLON.Color4(0, 0, 0, 1)
-		// 	}
-		// }
 	}
 
 	update(){
