@@ -25,7 +25,7 @@ let httpserver = http.createServer(app).listen(PORT)
 const wss = new SocketServer({server: httpserver})
 
 let map = []
-let d = 30
+let d = 300
 for(let i = 0; i < d; i++){
 	let row = []
 	for(let j = 0; j < d; j++){
@@ -53,8 +53,8 @@ wss.on('connection', function connection(ws, req){
 		// let bab = JSON.parse(data)
 
 		let initData = {
-			header: "initData",
-			value: map
+			h: "initData",
+			v: map
 		}
 		console.log("sending initial data")
 		sendMessage(ws, JSON.stringify(initData))
@@ -63,10 +63,10 @@ wss.on('connection', function connection(ws, req){
 
 	ws.on('message', function incoming(message){
 		let data = JSON.parse(message)
-		let header = data.header
+		let h = data.h
 
 		//player requests to move
-		if(header == "moveTo"){
+		if(h == "moveTo"){
 			let spotX = data.x
 			let spotY = data.y
 			console.log("request to move to " + spotX + "," + spotY)
@@ -83,20 +83,20 @@ wss.on('connection', function connection(ws, req){
 				console.log(pathArr)
 
 				let pathSend = {
-					header: "path",
-					path: pathArr
+					h: "path",
+					v: pathArr
 				}
 				sendMessage(ws, JSON.stringify(pathSend))
 			})
 			es.calculate()
 		}
 
-		if(header == "test"){
+		if(h == "test"){
 			console.log("got test message")
 
 			let pathSend = {
-				header: "shit",
-				value: 4
+				h: "shit",
+				v: 4
 			}
 			sendMessage(ws, JSON.stringify(pathSend))
 

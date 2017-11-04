@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	this.ws.onmessage = (event)=> {
 		let data = JSON.parse(event.data)
 
-		if(data.header == "initData"){
-			let map = data.value
+		if(data.h == "initData"){
+			let map = data.v
 
 			var assetsManager = new BABYLON.AssetsManager(scene)
 			assetsManager.useDefaultLoadingScreen = false

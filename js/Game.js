@@ -23,6 +23,8 @@ class Game{
 		var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
 		console.log(camera)
 		camera.inputs.attached.keyboard.detachControl()
+		camera.inputs.attached.pointers.detachControl()
+		camera.inputs.attached.mousewheel.detachControl()
 		// camera.inputs.attached.keyboard.keysUp = []
 		// camera.inputs.attached.keyboard.keysDown= []
 		// console.log(camera.inputs)
@@ -299,12 +301,37 @@ class Game{
 	    	}
     	}
 
+    	let destX = 400
+    	let destZ = 400
+    	let moveInc = new BABYLON.Vector3(
+    		destX - this.player.position.x,
+    		0,
+    		destZ - this.player.position.z)
+    	.normalize().scale(0.3)
+
+    	if(Math.abs(destX - this.player.position.x) > 0.1
+    		|| Math.abs(destZ - this.player.position.z) > 0.1)
+    		this.player.position = this.player.position.add(moveInc)
+
+    	// this.player.position = new BABYLON.Vector3.Lerp(
+    	// 	this.player.position,
+    	// 	new BABYLON.Vector3(
+    	// 		1,
+    	// 		this.player.position.y + 100,
+    	// 		1),
+    	// 	0.0001)
+
     	if(this.player !== undefined)
 			this.camera.setTarget(this.player.position)
 
 		let playerTile = this.map[this.player.x][this.player.y]
 
-
+		// this.camera.radius = 200
+		this.camera.setPosition(new BABYLON.Vector3(
+			this.player.position.x - 100, 
+			100, 
+			this.player.position.z - 100))
+		// console.log(this.camera.position)
 	}
 }
 
