@@ -4,18 +4,18 @@
 		selected layers only:  false
 		flat shading entire scene:  false
 		inline textures:  false
-		texture directory:  D:\code\babylonrpg\assets\models\
+		texture directory:  D:\code\babylonrpg\assets\\models\\building\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  chamonix
+	processing begun of mesh:  blue
 		WARNING: No materials have been assigned: 
-		num positions      :  9423
-		num normals        :  9423
+		num positions      :  24
+		num normals        :  24
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  37692
-		num indices        :  40062
+		num colors         :  96
+		num indices        :  84
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.36 secs
+elapsed time:  0 min, 0.0065 secs

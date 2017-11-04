@@ -81,7 +81,8 @@ function reduceFiles(){
 
 						    	//e.g. pike
 						    	let fileName = pathArr[pathArr.length - 1]
-						    	.replace(".mc.ply", "")
+						    	.replace(".mc", "")
+						    	.replace(".ply", "")
 
 						    	//turn gear/helmets/pike.mc.ply
 						    	//into

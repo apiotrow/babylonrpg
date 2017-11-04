@@ -9,8 +9,8 @@
         "chad": {
             "path": "./assets/models/char/chad.babylon"
         },
-        "bugsports2": {
-            "path": "./assets/models/building/bugsports2.babylon"
+        "blue": {
+            "path": "./assets/models/building/blue.babylon"
         }
     }
 }

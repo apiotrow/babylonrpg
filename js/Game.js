@@ -1,8 +1,8 @@
 var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 
-class test{
-	constructor(engine, canvas, scene, tasks){
+class Game{
+	constructor(engine, canvas, scene, tasks, map){
 		this.scene = scene
 		this.tasks = tasks
 
@@ -14,8 +14,10 @@ class test{
 		}
 
 		this.player
+		this.map = map
 
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
+		this.scene = scene
 		// BABYLON.SceneOptimizer.OptimizeAsync(scene, BABYLON.SceneOptimizerOptions.LowDegradationAllowed())
 		// var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
 		var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
@@ -60,12 +62,19 @@ class test{
 		this.keyState = {}
 		var onKeyDown = (evt)=> {
 			this.keyState[evt.key] = true
-
 	    }
 	    var onKeyUp = (evt)=> {
 	    	this.keyState[evt.key] = false
-
 	    }
+	    window.addEventListener
+		('click', (evt)=>{
+			this.keyState["click"] = true
+		})
+		window.addEventListener
+		('mouseup', (event)=>{
+			this.keyState["click"] = false
+		})
+
 	    BABYLON.Tools.RegisterTopRootEvents([{
 	        name: "keydown",
 	        handler: onKeyDown
@@ -99,8 +108,8 @@ class test{
 			this.meshes[meshName] = mesh
 		}
 
-		let d = 30
-		let spacing = 15
+		let d = map.length
+		this.spacing = 15
 		this.rotateMeshes = []
 		
 		for(let i in this.meshes){
@@ -114,59 +123,120 @@ class test{
 			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
 			mesh.renderOutline = true
 
-			if(mesh.name == "tree" || mesh.name == "grass"
-				|| mesh.name == "water")
-			{
-				mesh.position.y = 1000
-				continue
-			}
-			else if(mesh.name == "chad.mc"){
+			// if(mesh.name == "tree" || mesh.name == "blue"
+			// 	|| mesh.name == "water")
+			// {
+			// 	mesh.position.y = 1000
+			// 	continue
+			// }
+			if(mesh.name == "chad.mc"){
 				 this.player = mesh
 			}
 
-			mesh.position.x = Math.floor(Math.random() * d) * spacing
-			mesh.position.z = Math.floor(Math.random() * d) * spacing
+			mesh.position.x = Math.floor(Math.random() * d) * this.spacing
+			mesh.position.z = Math.floor(Math.random() * d) * this.spacing
 			mesh.position.y = 1
 
 			this.rotateMeshes.push(mesh)
 		}
 
-		console.log(this.rotateMeshes)
+		console.log(this.meshes)
+
+
+
+		let randX = Math.floor(Math.random() * map.length)
+		let randY = Math.floor(Math.random() * map.length)
+		
+		this.player.x = randX
+		this.player.y = randY
 
 		
 		let groundArr = []
 		const h = perlin.generatePerlinNoise(d, d)
 		this.changeMeshes = []
-		for(let i = 0; i < d * d; i++){
-			var newInstance 
 
-			if(h[i] < 0.5){
-				newInstance = this.meshes.grass.createInstance("index: " + i)
-				// newInstance = this.meshes.grass.clone("index: " + i)
+
+		
+		this.renderMapAroundPlayer()
+		
+
+
+
+		this.player.position = map[randX][randY].position
+		
+
+		// for(let i = 0; i < d * d; i++){
+		// 	var newInstance 
+
+		// 	newInstance = this.meshes.blue.createInstance("index: " + i)
+
+		// 	// if(h[i] < 0.5){
+		// 	// 	newInstance = this.meshes.grass.createInstance("index: " + i)
+		// 	// 	// newInstance = this.meshes.grass.clone("index: " + i)
+		// 	// }
+		// 	// else if(h[i] < 0.7){
+		// 	// 	newInstance = this.meshes["blue.ply"].createInstance("index: " + i)
+		// 	// 	// newInstance = this.meshes.tree.clone("index: " + i)
+		// 	// }else {
+		// 	// 	newInstance = this.meshes.water.createInstance("index: " + i)
+		// 	// 	// newInstance = this.meshes.tree.clone("index: " + i)
+		// 	// }
+
+		// 	//column
+		// 	newInstance.position.x = (i % d) * spacing
+
+		// 	//row
+		// 	newInstance.position.z = (Math.floor(i / d) * spacing)
+		// 	newInstance.position.y = 0
+
+		// 	groundArr.push(newInstance)
+
+		// 	this.changeMeshes.push(newInstance)
+		// }
+
+		let g = []
+		g.push("ss")
+		g.push(2)
+		console.log(g)
+	}
+
+	renderMapAroundPlayer(){
+
+
+		for(let i = this.player.x - 5; i < this.player.x + 5; i++){
+			for(let j = this.player.y - 5; j < this.player.y + 5; j++){
+
+				//if it's off map don't do
+				if(this.map[i] === undefined
+					|| this.map[i][j] === undefined)
+					continue
+
+				let newInstance
+
+				newInstance = this.meshes.blue.createInstance("blah")
+
+				newInstance.x = i
+				newInstance.y = j
+
+				if(this.map[i][j] == 1)
+					newInstance.walkable = true
+				else
+					newInstance.walkable = false
+
+				this.map[i][j] = newInstance
+
+				newInstance.position.x = i * this.spacing
+				newInstance.position.z = j * this.spacing
+				newInstance.position.y = 0
 			}
-			else if(h[i] < 0.7){
-				newInstance = this.meshes.tree.createInstance("index: " + i)
-				// newInstance = this.meshes.tree.clone("index: " + i)
-			}else {
-				newInstance = this.meshes.water.createInstance("index: " + i)
-				// newInstance = this.meshes.tree.clone("index: " + i)
-			}
-
-			//column
-			newInstance.position.x = (i % d) * spacing
-
-			//row
-			newInstance.position.z = (Math.floor(i / d) * spacing)
-			newInstance.position.y = 0
-
-			groundArr.push(newInstance)
-
-			this.changeMeshes.push(newInstance)
 		}
 	}
 
 	update(){
 		this.scene.render()
+
+		// var forward = this.player.getDirection(BABYLON.Vector3.Forward())
+		// console.log(forward)
 
 		if(this.keyState['r'] == true){
 			// console.log(this.camera.target)
@@ -190,12 +260,52 @@ class test{
 			// this.rotateMeshes[mesh].position.y = Math.random() * 100
 		}
 
-		if(this.player !== undefined)
-			this.camera.setTarget(this.player.position)
+		
 		if(this.keyState['w'] == true){
-			this.player.position.x += 1
+			// this.player.position.x += 1
+			// this.player.rotation.y += 0.1
+
+			// var orientation = BABYLON.Vector3.RotationFromAxis(axis1, axis2, axis3);
+			// mesh.rotation = orientation;
+
+
+			this.player.rotation.y = 0 * (Math.PI / 180)
 		}
+		if(this.keyState['d'] == true){
+			this.player.rotation.y = 270 * (Math.PI / 180)
+		}
+		if(this.keyState['a'] == true){
+			this.player.rotation.y = 90 * (Math.PI / 180)
+		}
+		if(this.keyState['s'] == true){
+			this.player.rotation.y = 180 * (Math.PI / 180)
+		}
+
+		let pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY)
+
+	    if (pickResult.hit) {
+		    let diffX = pickResult.pickedPoint.x - this.player.position.x
+		    let diffY = pickResult.pickedPoint.z - this.player.position.z
+		    this.player.rotation.y = Math.atan2(diffX,diffY) + 180 * (Math.PI / 180)
+
+		    if(this.keyState["click"]){
+		    	if(pickResult.pickedMesh !== null && pickResult.pickedMesh !== undefined){
+		    		this.player.position = pickResult.pickedMesh.position
+		    		this.player.x = pickResult.pickedMesh.x
+		    		this.player.y = pickResult.pickedMesh.y
+		    		this.renderMapAroundPlayer()
+		    	}
+		    	this.keyState["click"] = false
+	    	}
+    	}
+
+    	if(this.player !== undefined)
+			this.camera.setTarget(this.player.position)
+
+		let playerTile = this.map[this.player.x][this.player.y]
+
+
 	}
 }
 
-module.exports = test
+module.exports = Game

@@ -25,9 +25,10 @@ let httpserver = http.createServer(app).listen(PORT)
 const wss = new SocketServer({server: httpserver})
 
 let map = []
-for(let i = 0; i < 20; i++){
+let d = 30
+for(let i = 0; i < d; i++){
 	let row = []
-	for(let j = 0; j < 20; j++){
+	for(let j = 0; j < d; j++){
 		row.push(1)
 	}
 	map.push(row)
@@ -43,9 +44,7 @@ es.setGrid(map)
 // })
 // es.calculate()
 
-fs.readFile("assets/models/char/chad.babylon", 'utf8', function read(err, data){
-	console.log(JSON.parse(data))
-})
+
 
 wss.on('connection', function connection(ws, req){
 	//let client know we're ready
@@ -55,7 +54,7 @@ wss.on('connection', function connection(ws, req){
 
 		let initData = {
 			header: "initData",
-			value: data
+			value: map
 		}
 		console.log("sending initial data")
 		sendMessage(ws, JSON.stringify(initData))
