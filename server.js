@@ -27,7 +27,7 @@ let httpserver = http.createServer(app).listen(PORT)
 const wss = new SocketServer({server: httpserver})
 
 let map = []
-let d = 300
+let d = 30
 for(let x = 0; x < d; x++){
 	let col = []
 	for(let z = 0; z < d; z++){
@@ -56,17 +56,18 @@ wss.on('connection', function connection(ws, req){
 		let h = data.h
 
 		if(h == "chunk"){
-			let tileX = data.v[0]
-			let tileZ = data.v[1]
+			let tileX = data.v.cent[0]
+			let tileZ = data.v.cent[1]
+
+			let r = data.v.r
 
 			let chunk = []
 
-
-			for(let x = tileX - 5; x < tileX + 5; x++){
+			for(let x = tileX - r; x < tileX + r; x++){
 				let row = []
-				for(let z = tileZ - 5; z < tileZ + 5; z++){
+				for(let z = tileZ - r; z < tileZ + r; z++){
 
-					//if it's off map don't do
+					//if tile is off map it will be undefined
 					if(map[x] === undefined
 						|| map[x][z] === undefined)
 					{
@@ -81,7 +82,10 @@ wss.on('connection', function connection(ws, req){
 
 			let chunkSend = {
 				h: "chunk",
-				v: chunk
+				v: {
+					chunk: chunk,
+					r: r
+				}
 			}
 
 			sendMessage(ws, JSON.stringify(chunkSend))

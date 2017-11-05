@@ -7,19 +7,12 @@ class Game{
 
 		this.scene = scene
 		this.engine = engine
-		this.chunk
+		this.chunk = []
 		this.ws = ws
 		this.main = main
 
 		this.meshes = {}
 
-
-
-		
-
-		
-
-		
 		let keyCodes = {
 			S: 83,
 			A: 65,
@@ -94,15 +87,18 @@ class Game{
 
 		this.player.tileX = playerTileX
 		this.player.tileZ = playerTileZ
-		this.player.position.x = this.player.tileX * this.spacing
-		this.player.position.z = this.player.tileZ * this.spacing
+		this.player.position.x = this.tileToWorld(this.player.tileX)
+		this.player.position.z = this.tileToWorld(this.player.tileZ)
 
 		this.destWorldX = this.player.position.x
     	this.destWorldZ = this.player.position.z
 
     	let requestChunk = {
 			h: "chunk",
-			v: [this.destWorldX, this.destWorldZ]
+			v: {
+				cent: [this.player.tileX, this.player.tileZ],
+				r: 5
+			}
 		}
 		this.ws.send(JSON.stringify(requestChunk))
 	}
@@ -132,30 +128,41 @@ class Game{
 	}
 
 	renderChunk(chunk){
+
+		//dispose all meshes in old chunk
+		//and reset all entries
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
+				if(this.chunk[x][z] !== null){
+					this.chunk[x][z].dispose()
+				}
+				this.chunk[x][z] = null
+			}
+		}
+
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
 
-				//if it's off map don't do
+				//if tile is off map it will be undefined
 				if(chunk[x] === null
 					|| chunk[x][z] === null)
+				{
 					continue
-
-				let newInstance
+				}
 
 				//convert model ID to model name
 				let modelName = gloss.IDToModel[chunk[x][z]]
 
-				newInstance = this.meshes.blue.createInstance(
-					modelName
-					)
+				let newInstance = this.meshes[modelName].createInstance()
 
 				newInstance.tileX = this.player.tileX + (x - 5)
 				newInstance.tileZ = this.player.tileZ + (z - 5)
 
-
 				newInstance.position.x = this.tileToWorld(newInstance.tileX)
 				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
 				newInstance.position.y = 0
+
+				this.chunk[x][z] = newInstance
 			}
 		}
 	}
@@ -175,7 +182,25 @@ class Game{
     	return (tileCoord * this.spacing)
     }
 
-    newChunk(chunk){
+    newChunk(chunk, r){
+
+    	//if this.chunk hasn't been initialized (game just
+    	//started), or if new chunk is a different dimension 
+    	//than previous chunk, remake this.chunk 
+    	if(
+    		this.chunk !== undefined
+    		&& this.chunk.length != r * 2)
+    	{
+    		this.chunk = []
+    		for(let x = 0; x < r * 2; x++){
+    			let col = []
+				for(let z = 0; z < r * 2; z++){
+					col.push(null)
+				}
+				this.chunk.push(col)
+			}
+    	}
+
     	this.renderChunk(chunk)
     }
 
@@ -215,7 +240,10 @@ class Game{
 
 	    		let requestChunk = {
 					h: "chunk",
-					v: [tileXHit, tileZHit]
+					v: {
+						cent: [tileXHit, tileZHit],
+						r: 5
+					}
 				}
 				this.ws.send(JSON.stringify(requestChunk))
 
@@ -237,12 +265,9 @@ class Game{
     	{
     		//continue moving toward destination
     		this.player.position = this.player.position.add(moveInc)
-
     	}else{
     		// this.player.tileX = this.worldToTile(this.destWorldX)
     		// this.player.tileZ = this.worldToTile(this.destWorldZ)
-
-
     	}
 
 

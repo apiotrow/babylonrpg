@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	let ws = new WebSocket("ws://127.0.0.1:5000/")
 
-	let playerTileX = 2
+	let playerTileX = 1
 	let playerTileZ = 3
 	let gameInstance = new Game(
  		this, engine, canvas, scene,
@@ -43,7 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		assetsManager.load()
 
-		
 		assetsManager.onFinish = (tasks)=> {
 			gameInstance.initGame(tasks, playerTileX, playerTileZ)
 	 	}
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		let data = JSON.parse(event.data)
 
 		if(data.h == "chunk"){
-			gameInstance.newChunk(data.v)
+			gameInstance.newChunk(data.v.chunk, data.v.r)
 		}
 	}
 })
