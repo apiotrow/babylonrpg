@@ -56,15 +56,15 @@ wss.on('connection', function connection(ws, req){
 		let h = data.h
 
 		if(h == "chunk"){
-			let mapX = data.v[0]
-			let mapZ = data.v[1]
+			let tileX = data.v[0]
+			let tileZ = data.v[1]
 
 			let chunk = []
 
 
-			for(let x = mapX - 5; x < mapX + 5; x++){
+			for(let x = tileX - 5; x < tileX + 5; x++){
 				let row = []
-				for(let z = mapZ - 5; z < mapZ + 5; z++){
+				for(let z = tileZ - 5; z < tileZ + 5; z++){
 
 					//if it's off map don't do
 					if(map[x] === undefined
@@ -74,7 +74,7 @@ wss.on('connection', function connection(ws, req){
 						continue
 					}
 
-					row.push(gloss.modelids[map[x][z]])
+					row.push(gloss.modelToID[map[x][z]])
 				}
 				chunk.push(row)
 			}

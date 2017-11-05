@@ -128,10 +128,11 @@ function reduceFiles(){
 	
 								//add entry for model in glossary object
 						    	assignObject(gloss, ['models', fileName, "path"], pathForGloss)
-						    	assignObject(gloss, ['models', fileName, "id"], modelid)
+						    	assignObject(gloss, ['models', fileName, "ID"], modelid)
 
 						    	//add entry for ID: model
-						    	assignObject(gloss, ['modelids', fileName], modelid)
+						    	assignObject(gloss, ['modelToID', fileName], modelid)
+						    	assignObject(gloss, ['IDToModel', modelid], fileName)
 
 						    	//execute blender face reduction script
 								exec(babylonCMD, function(error, stdout, stderr) {

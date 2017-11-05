@@ -1,22 +1,31 @@
 var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
+let gloss = require("../assets/gloss.json")
 
 class Game{
-	constructor(engine, canvas, scene, tasks, chunk, playerMapX, playerMapZ, appW, appH){
+	constructor(main, engine, canvas, scene, appW, appH, ws){
 
 		this.scene = scene
-		this.tasks = tasks
+		this.engine = engine
+		this.chunk
+		this.ws = ws
+		this.main = main
 
+		this.meshes = {}
+
+
+
+		
+
+		
+
+		
 		let keyCodes = {
 			S: 83,
 			A: 65,
 			W: 87,
 			D: 68
 		}
-
-		this.player = {}
-
-		this.chunk = chunk
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 500, 500, 10, scene)
 		this.ground.isPickable = true
@@ -32,7 +41,7 @@ class Game{
 	    camera.attachControl(canvas, false)
 		this.camera = camera
 		
-		let divisor = 3
+		let divisor = 9
 		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		camera.orthoTop = appH / divisor
 		camera.orthoBottom = -appH / divisor
@@ -73,27 +82,42 @@ class Game{
 		    engine.resize()
 		})
 
-		var cell = new BABYLON.StandardMaterial("cell", scene)
-		cell.specularColor = BABYLON.Color3.Black()
+		this.spacing = 15
+	}
 
-		this.meshes = {}
+	initGame(tasks, playerTileX, playerTileZ){
+		this.setupMeshes(tasks)
+
+		this.engine.runRenderLoop( ()=> {
+			this.update()
+		})
+
+		this.player.tileX = playerTileX
+		this.player.tileZ = playerTileZ
+		this.player.position.x = this.player.tileX * this.spacing
+		this.player.position.z = this.player.tileZ * this.spacing
+
+		this.destWorldX = this.player.position.x
+    	this.destWorldZ = this.player.position.z
+
+    	let requestChunk = {
+			h: "chunk",
+			v: [this.destWorldX, this.destWorldZ]
+		}
+		this.ws.send(JSON.stringify(requestChunk))
+	}
+
+	setupMeshes(tasks){
+		//make non-specular material to prevent shine
+		var mat = new BABYLON.StandardMaterial("mat", this.scene)
+		mat.specularColor = BABYLON.Color3.Black()
+
+		//setup meshes
 		for(let i = 0; i < tasks.length; i++){
 			let meshName = tasks[i].name
 			let mesh = tasks[i].loadedMeshes[0]
 
-			this.meshes[meshName] = mesh
-		}
-
-		engine.runRenderLoop( ()=> {
-			this.update()
-		})
-
-		this.spacing = 15
-		
-		for(let i in this.meshes){
-			let mesh = this.meshes[i]
-
-			mesh.material = cell
+			mesh.material = mat
 			mesh.convertToFlatShadedMesh()
 
 			mesh.useVertexColors = true
@@ -101,41 +125,36 @@ class Game{
 			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
 			mesh.renderOutline = true
 
-			if(mesh.name == "chad"){
-				 this.player = mesh
-			}
+			this.meshes[meshName] = mesh
 		}
 
-		this.player.x = playerMapX
-		this.player.z = playerMapZ
-		this.player.position.x = this.player.x * this.spacing
-		this.player.position.z = this.player.z * this.spacing
-
-		this.destX = this.player.position.x
-    	this.destZ = this.player.position.z
-
-		this.renderMapAroundPlayer()
+		this.player = this.meshes.chad
 	}
 
-	renderMapAroundPlayer(){
-		for(let x = 0; x < this.chunk.length; x++){
-			for(let z = 0; z < this.chunk[x].length; z++){
+	renderChunk(chunk){
+		for(let x = 0; x < chunk.length; x++){
+			for(let z = 0; z < chunk[x].length; z++){
 
 				//if it's off map don't do
-				if(this.chunk[x] === null
-					|| this.chunk[x][z] === null)
+				if(chunk[x] === null
+					|| chunk[x][z] === null)
 					continue
 
 				let newInstance
 
-				newInstance = this.meshes.blue.createInstance("blah")
+				//convert model ID to model name
+				let modelName = gloss.IDToModel[chunk[x][z]]
 
-				newInstance.x = this.player.x + (x - 5)
-				newInstance.z = this.player.z + (z - 5)
+				newInstance = this.meshes.blue.createInstance(
+					modelName
+					)
+
+				newInstance.tileX = this.player.tileX + (x - 5)
+				newInstance.tileZ = this.player.tileZ + (z - 5)
 
 
-				newInstance.position.x = newInstance.x * this.spacing
-				newInstance.position.z = newInstance.z * this.spacing
+				newInstance.position.x = this.tileToWorld(newInstance.tileX)
+				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
 				newInstance.position.y = 0
 			}
 		}
@@ -146,6 +165,18 @@ class Game{
             return true
         }
         return false
+    }
+
+    worldToTile(worldCoord){
+    	return Math.floor((worldCoord + (this.spacing / 2)) / this.spacing)
+    }
+
+    tileToWorld(tileCoord){
+    	return (tileCoord * this.spacing)
+    }
+
+    newChunk(chunk){
+    	this.renderChunk(chunk)
     }
 
 	update(){
@@ -165,10 +196,6 @@ class Game{
 			this.player.rotation.y = 180 * (Math.PI / 180)
 		}
 
-		
-
-
-
 		if(this.keyState["click"]){
 
 	        var hits = this.scene.multiPick(
@@ -180,45 +207,43 @@ class Game{
 	        if(hits[0] !== undefined){
 		        let mouseHit = hits[0].pickedPoint
 
-		        this.destX = mouseHit.x 
-	    		this.destZ = mouseHit.z 
+		        let tileXHit = this.worldToTile(mouseHit.x)
+		        let tileZHit = this.worldToTile(mouseHit.z)
 
-		     //    this.destX = Math.floor(mouseHit.x / this.spacing)
-	    		// this.destZ = Math.floor(mouseHit.z / this.spacing)
+		        this.destWorldX = this.tileToWorld(tileXHit)
+	    		this.destWorldZ = this.tileToWorld(tileZHit)
 
-	    		// this.player.x = this.destX
-	    		// this.player.z = this.destZ
+	    		let requestChunk = {
+					h: "chunk",
+					v: [tileXHit, tileZHit]
+				}
+				this.ws.send(JSON.stringify(requestChunk))
 
-	    		this.renderMapAroundPlayer()
+				this.player.tileX = tileXHit
+    			this.player.tileZ = tileZHit
 		    }
 
 		    this.keyState["click"] = false
 		}
 
     	let moveInc = new BABYLON.Vector3(
-    		this.destX - this.player.position.x,
+    		this.destWorldX - this.player.position.x,
     		0,
-    		this.destZ - this.player.position.z)
+    		this.destWorldZ - this.player.position.z)
     	.normalize().scale(1)
 
-    	if(Math.abs(this.destX - this.player.position.x) > Math.abs(moveInc.x)
-    		|| Math.abs(this.destZ - this.player.position.z) > Math.abs(moveInc.z))
+    	if(Math.abs(this.destWorldX - this.player.position.x) > Math.abs(moveInc.x)
+    		|| Math.abs(this.destWorldZ - this.player.position.z) > Math.abs(moveInc.z))
+    	{
+    		//continue moving toward destination
     		this.player.position = this.player.position.add(moveInc)
 
+    	}else{
+    		// this.player.tileX = this.worldToTile(this.destWorldX)
+    		// this.player.tileZ = this.worldToTile(this.destWorldZ)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+    	}
 
 
 
