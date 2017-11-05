@@ -7,7 +7,7 @@
 		texture directory:  D:\code\babylonrpg\assets\\models\\building\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  roof1.mc
+	processing begun of mesh:  roof1
 		WARNING: No materials have been assigned: 
 		num positions      :  20
 		num normals        :  20
@@ -18,4 +18,4 @@
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0211 secs
+elapsed time:  0 min, 0.014 secs

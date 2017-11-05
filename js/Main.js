@@ -26,12 +26,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	this.ws = new WebSocket("ws://127.0.0.1:5000/")
 
-	let playerMapX = 3
-	let playerMapZ = 7
+	let playerMapX = 2
+	let playerMapZ = 3
 	this.ws.onopen = ()=>{
 		let requestChunk = {
 			h: "chunk",
-			v: [playerMapZ, playerMapX]
+			v: [playerMapX, playerMapZ]
 		}
 		this.ws.send(JSON.stringify(requestChunk))
 	}

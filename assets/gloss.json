@@ -1,11 +1,11 @@
 {
     "models": {
-        "blue": {
-            "path": "./assets/models/building/blue.babylon",
-            "id": 0
-        },
         "wall1": {
             "path": "./assets/models/building/wall1.babylon",
+            "id": 0
+        },
+        "blue": {
+            "path": "./assets/models/building/blue.babylon",
             "id": 1
         },
         "roof1": {
@@ -18,8 +18,8 @@
         }
     },
     "modelids": {
-        "blue": 0,
-        "wall1": 1,
+        "wall1": 0,
+        "blue": 1,
         "roof1": 2,
         "chad": 3
     }

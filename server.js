@@ -28,12 +28,12 @@ const wss = new SocketServer({server: httpserver})
 
 let map = []
 let d = 300
-for(let i = 0; i < d; i++){
-	let row = []
-	for(let j = 0; j < d; j++){
-		row.push("blue")
+for(let x = 0; x < d; x++){
+	let col = []
+	for(let z = 0; z < d; z++){
+		col.push("blue")
 	}
-	map.push(row)
+	map.push(col)
 }
 let es = new easystarjs.js()
 es.setAcceptableTiles(1)
@@ -51,33 +51,30 @@ wss.on('connection', function connection(ws, req){
 	//let client know we're ready
 	
 
-
-
-
 	ws.on('message', function incoming(message){
 		let data = JSON.parse(message)
 		let h = data.h
 
 		if(h == "chunk"){
-			let mapZ = data.v[0]
-			let mapX = data.v[1]
+			let mapX = data.v[0]
+			let mapZ = data.v[1]
 
 			let chunk = []
 
 
-			for(let i = mapZ - 5; i < mapZ + 5; i++){
+			for(let x = mapX - 5; x < mapX + 5; x++){
 				let row = []
-				for(let j = mapX - 5; j < mapX + 5; j++){
+				for(let z = mapZ - 5; z < mapZ + 5; z++){
 
 					//if it's off map don't do
-					if(map[i] === undefined
-						|| map[i][j] === undefined)
+					if(map[x] === undefined
+						|| map[x][z] === undefined)
 					{
 						row.push(null)
 						continue
 					}
 
-					row.push(gloss.modelids[map[i][j]])
+					row.push(gloss.modelids[map[x][z]])
 				}
 				chunk.push(row)
 			}

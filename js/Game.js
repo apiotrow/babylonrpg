@@ -15,12 +15,6 @@ class Game{
 		}
 
 		this.player = {}
-		// this.map = map
-
-		// let randX = Math.floor(Math.random() * map.length)
-		// let randY = Math.floor(Math.random() * map.length)
-		
-		
 
 		this.chunk = chunk
 
@@ -29,49 +23,22 @@ class Game{
 
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		this.scene = scene
-		// BABYLON.SceneOptimizer.OptimizeAsync(scene, BABYLON.SceneOptimizerOptions.LowDegradationAllowed())
 		// var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
 		var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
-		console.log(camera)
+
 		camera.inputs.attached.keyboard.detachControl()
 		camera.inputs.attached.pointers.detachControl()
 		camera.inputs.attached.mousewheel.detachControl()
-		// camera.inputs.attached.keyboard.keysUp = []
-		// camera.inputs.attached.keyboard.keysDown= []
-		// console.log(camera.inputs)
-
-		// camera.inputs.attached.keyboard.keysDown.push(keyCodes.S)
-		// camera.inputs.attached.keyboard.keysUp.push(keyCodes.W)
-		// camera.inputs.attached.keyboard.keysLeft.push(keyCodes.A)
-		// camera.inputs.attached.keyboard.keysRight.push(keyCodes.D)
-
-	 //    camera.setTarget(BABYLON.Vector3.Zero())
 	    camera.attachControl(canvas, false)
-
 		this.camera = camera
-		// camera.target = new BABYLON.Vector3(150, 150, 150)
-		// camera.inputs.add(new BABYLON.FreeCameraKeyboardMoveInput())
 		
-		// let divisor = 3
-		// camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-		// camera.orthoTop = appH / divisor
-		// camera.orthoBottom = -appH / divisor
-		// camera.orthoLeft = -appW / divisor
-		// camera.orthoRight = appW / divisor
-		
-
-		// var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
-		// var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene)
-		// skyboxMaterial.backFaceCulling = false;
-		// // skyboxMaterial.disableLighting = true;
-		// // skybox.infiniteDistance = true;
-		// // skyboxMaterial.disableLighting = true;
-		// skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("assets/skyboxes/TropicalSunnyDay/TropicalSunnyDay", scene);
-		// skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-		// skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-		// skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-		// skybox.material = skyboxMaterial;
-		
+		let divisor = 3
+		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+		camera.orthoTop = appH / divisor
+		camera.orthoBottom = -appH / divisor
+		camera.orthoLeft = -appW / divisor
+		camera.orthoRight = appW / divisor
+	
 		this.keyState = {}
 		var onKeyDown = (evt)=> {
 			this.keyState[evt.key] = true
@@ -102,8 +69,6 @@ class Game{
 	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
 	    light5.intensity = 1.5
 
-		
-
 		window.addEventListener("resize", function () {
 		    engine.resize()
 		})
@@ -123,9 +88,7 @@ class Game{
 			this.update()
 		})
 
-		// let d = map.length
 		this.spacing = 15
-		this.rotateMeshes = []
 		
 		for(let i in this.meshes){
 			let mesh = this.meshes[i]
@@ -138,36 +101,10 @@ class Game{
 			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
 			mesh.renderOutline = true
 
-			// if(mesh.name == "tree" || mesh.name == "blue"
-			// 	|| mesh.name == "water")
-			// {
-			// 	mesh.position.y = 1000
-			// 	continue
-			// }
-			if(mesh.name == "chad.mc"){
+			if(mesh.name == "chad"){
 				 this.player = mesh
 			}
-
-			// mesh.position.x = Math.floor(Math.random() * d) * this.spacing
-			// mesh.position.z = Math.floor(Math.random() * d) * this.spacing
-			// mesh.position.y = 1
-
-			// this.rotateMeshes.push(mesh)
 		}
-
-
-
-		console.log(this.meshes)
-
-
-
-		
-
-		
-		let groundArr = []
-		// const h = perlin.generatePerlinNoise(d, d)
-		this.changeMeshes = []
-
 
 		this.player.x = playerMapX
 		this.player.z = playerMapZ
@@ -178,64 +115,23 @@ class Game{
     	this.destZ = this.player.position.z
 
 		this.renderMapAroundPlayer()
-		
-
-
-
-		// this.player.position = map[randX][randY].position
-		
-
-		// for(let i = 0; i < d * d; i++){
-		// 	var newInstance 
-
-		// 	newInstance = this.meshes.blue.createInstance("index: " + i)
-
-		// 	// if(h[i] < 0.5){
-		// 	// 	newInstance = this.meshes.grass.createInstance("index: " + i)
-		// 	// 	// newInstance = this.meshes.grass.clone("index: " + i)
-		// 	// }
-		// 	// else if(h[i] < 0.7){
-		// 	// 	newInstance = this.meshes["blue.ply"].createInstance("index: " + i)
-		// 	// 	// newInstance = this.meshes.tree.clone("index: " + i)
-		// 	// }else {
-		// 	// 	newInstance = this.meshes.water.createInstance("index: " + i)
-		// 	// 	// newInstance = this.meshes.tree.clone("index: " + i)
-		// 	// }
-
-		// 	//column
-		// 	newInstance.position.x = (i % d) * spacing
-
-		// 	//row
-		// 	newInstance.position.z = (Math.floor(i / d) * spacing)
-		// 	newInstance.position.y = 0
-
-		// 	groundArr.push(newInstance)
-
-		// 	this.changeMeshes.push(newInstance)
-		// }
-
-
-		
 	}
 
 	renderMapAroundPlayer(){
-		for(let i = 0; i < this.chunk.length; i++){
-			for(let j = 0; j < this.chunk[i].length; j++){
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
 
 				//if it's off map don't do
-				if(this.chunk[i] === null
-					|| this.chunk[i][j] === null)
+				if(this.chunk[x] === null
+					|| this.chunk[x][z] === null)
 					continue
 
 				let newInstance
 
 				newInstance = this.meshes.blue.createInstance("blah")
 
-				newInstance.x = this.player.x + (j - 5)
-				newInstance.z = this.player.z + (i - 5)
-
-				// newInstance.x = this.player.x - i + 5
-				// newInstance.z = this.player.x - j + 5
+				newInstance.x = this.player.x + (x - 5)
+				newInstance.z = this.player.z + (z - 5)
 
 
 				newInstance.position.x = newInstance.x * this.spacing
@@ -243,39 +139,6 @@ class Game{
 				newInstance.position.y = 0
 			}
 		}
-
-
-
-
-		// for(let i = this.player.x - 5; i < this.player.x + 5; i++){
-		// 	for(let j = this.player.y - 5; j < this.player.y + 5; j++){
-
-		// 		//if it's off map don't do
-		// 		if(this.map[i] === undefined
-		// 			|| this.map[i][j] === undefined)
-		// 			continue
-
-		// 		let newInstance
-
-		// 		newInstance = this.meshes.blue.createInstance("blah")
-
-		// 		newInstance.x = i
-		// 		newInstance.y = j
-
-		// 		if(this.map[i][j] == 1)
-		// 			newInstance.walkable = true
-		// 		else
-		// 			newInstance.walkable = false
-
-		// 		this.map[i][j] = newInstance
-
-		// 		newInstance.position.x = i * this.spacing
-		// 		newInstance.position.z = j * this.spacing
-		// 		newInstance.position.y = 0
-		// 	}
-		// }
-
-		
 	}
 
     groundPredicate(mesh){
@@ -316,8 +179,6 @@ class Game{
 
 	        if(hits[0] !== undefined){
 		        let mouseHit = hits[0].pickedPoint
-
-		        console.log(mouseHit)
 
 		        this.destX = mouseHit.x 
 	    		this.destZ = mouseHit.z 
@@ -384,10 +245,10 @@ class Game{
 
 		this.camera.radius = 200
 		
-		// this.camera.setPosition(new BABYLON.Vector3(
-		// 	this.player.position.x - 100, 
-		// 	100, 
-		// 	this.player.position.z - 100))
+		this.camera.setPosition(new BABYLON.Vector3(
+			this.player.position.x - 100, 
+			100, 
+			this.player.position.z - 100))
 	}
 }
 

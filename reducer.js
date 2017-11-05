@@ -56,6 +56,11 @@ function reduceFiles(){
 			    		throw err
 			    	}
 
+			    	//turn wall1.mc.ply into wall.ply so mesh names and ids
+			    	//don't have the .mc extension when loaded by babylon loader
+			    	fs.renameSync(file, file.replace(".mc", ""))
+			    	file = file.replace(".mc", "")
+
 			    	//command for blender face reduction script
 			    	var cmd = "blender --background --python ./blendissolve.py -- " 
 			    	+ file
