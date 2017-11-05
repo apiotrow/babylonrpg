@@ -15,22 +15,35 @@ document.addEventListener('DOMContentLoaded', function () {
 	var BABYLON = require('babylonjs')
 	var Game = require('./Game.js')
 
+	let appH = 600
+	let appW = 800
 	var canvas = document.getElementById("game")
+	canvas.style.width = appW + "px"
+	canvas.style.height = appH + "px"
 	var engine = new BABYLON.Engine(canvas, true)
 	engine.enableOfflineSupport = false //prevent babylon.manifest error
 	var scene = new BABYLON.Scene(engine)
 
 	this.ws = new WebSocket("ws://127.0.0.1:5000/")
 
+	let playerMapX = 3
+	let playerMapZ = 7
 	this.ws.onopen = ()=>{
-		// console.log("op")
+		let requestChunk = {
+			h: "chunk",
+			v: [playerMapZ, playerMapX]
+		}
+		this.ws.send(JSON.stringify(requestChunk))
 	}
 
 	this.ws.onmessage = (event)=> {
+
 		let data = JSON.parse(event.data)
 
-		if(data.h == "initData"){
-			let map = data.v
+		if(data.h == "chunk"){
+			let chunk = data.v
+
+			console.log(chunk)
 
 			var assetsManager = new BABYLON.AssetsManager(scene)
 			assetsManager.useDefaultLoadingScreen = false
@@ -43,7 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			let go
 			assetsManager.onFinish = function(tasks) {
-		     	go = new Game(engine, canvas, scene, tasks, map)
+		     	go = new Game(
+		     		engine, canvas, scene, tasks, 
+		     		chunk, playerMapX, playerMapZ, 
+		     		appW, appH)
 		 	}
 		}
 	}	

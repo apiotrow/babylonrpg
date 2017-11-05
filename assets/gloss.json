@@ -1,16 +1,26 @@
 {
     "models": {
+        "blue": {
+            "path": "./assets/models/building/blue.babylon",
+            "id": 0
+        },
         "wall1": {
-            "path": "./assets/models/building/wall1.babylon"
+            "path": "./assets/models/building/wall1.babylon",
+            "id": 1
         },
         "roof1": {
-            "path": "./assets/models/building/roof1.babylon"
+            "path": "./assets/models/building/roof1.babylon",
+            "id": 2
         },
         "chad": {
-            "path": "./assets/models/char/chad.babylon"
-        },
-        "blue": {
-            "path": "./assets/models/building/blue.babylon"
+            "path": "./assets/models/char/chad.babylon",
+            "id": 3
         }
+    },
+    "modelids": {
+        "blue": 0,
+        "wall1": 1,
+        "roof1": 2,
+        "chad": 3
     }
 }

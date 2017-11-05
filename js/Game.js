@@ -2,7 +2,8 @@ var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 
 class Game{
-	constructor(engine, canvas, scene, tasks, map){
+	constructor(engine, canvas, scene, tasks, chunk, playerMapX, playerMapZ, appW, appH){
+
 		this.scene = scene
 		this.tasks = tasks
 
@@ -13,8 +14,18 @@ class Game{
 			D: 68
 		}
 
-		this.player
-		this.map = map
+		this.player = {}
+		// this.map = map
+
+		// let randX = Math.floor(Math.random() * map.length)
+		// let randY = Math.floor(Math.random() * map.length)
+		
+		
+
+		this.chunk = chunk
+
+		this.ground = BABYLON.Mesh.CreateGround("ground", 500, 500, 10, scene)
+		this.ground.isPickable = true
 
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		this.scene = scene
@@ -41,12 +52,12 @@ class Game{
 		// camera.target = new BABYLON.Vector3(150, 150, 150)
 		// camera.inputs.add(new BABYLON.FreeCameraKeyboardMoveInput())
 		
-		// let orthoSize = 100
+		// let divisor = 3
 		// camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-		// camera.orthoTop = orthoSize;
-		// camera.orthoBottom = -orthoSize;
-		// camera.orthoLeft = -orthoSize;
-		// camera.orthoRight = orthoSize
+		// camera.orthoTop = appH / divisor
+		// camera.orthoBottom = -appH / divisor
+		// camera.orthoLeft = -appW / divisor
+		// camera.orthoRight = appW / divisor
 		
 
 		// var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
@@ -91,9 +102,7 @@ class Game{
 	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
 	    light5.intensity = 1.5
 
-		engine.runRenderLoop( ()=> {
-			this.update()
-		})
+		
 
 		window.addEventListener("resize", function () {
 		    engine.resize()
@@ -110,7 +119,11 @@ class Game{
 			this.meshes[meshName] = mesh
 		}
 
-		let d = map.length
+		engine.runRenderLoop( ()=> {
+			this.update()
+		})
+
+		// let d = map.length
 		this.spacing = 15
 		this.rotateMeshes = []
 		
@@ -135,36 +148,41 @@ class Game{
 				 this.player = mesh
 			}
 
-			mesh.position.x = Math.floor(Math.random() * d) * this.spacing
-			mesh.position.z = Math.floor(Math.random() * d) * this.spacing
-			mesh.position.y = 1
+			// mesh.position.x = Math.floor(Math.random() * d) * this.spacing
+			// mesh.position.z = Math.floor(Math.random() * d) * this.spacing
+			// mesh.position.y = 1
 
-			this.rotateMeshes.push(mesh)
+			// this.rotateMeshes.push(mesh)
 		}
+
+
 
 		console.log(this.meshes)
 
 
 
-		let randX = Math.floor(Math.random() * map.length)
-		let randY = Math.floor(Math.random() * map.length)
 		
-		this.player.x = randX
-		this.player.y = randY
 
 		
 		let groundArr = []
-		const h = perlin.generatePerlinNoise(d, d)
+		// const h = perlin.generatePerlinNoise(d, d)
 		this.changeMeshes = []
 
 
-		
+		this.player.x = playerMapX
+		this.player.z = playerMapZ
+		this.player.position.x = this.player.x * this.spacing
+		this.player.position.z = this.player.z * this.spacing
+
+		this.destX = this.player.position.x
+    	this.destZ = this.player.position.z
+
 		this.renderMapAroundPlayer()
 		
 
 
 
-		this.player.position = map[randX][randY].position
+		// this.player.position = map[randX][randY].position
 		
 
 		// for(let i = 0; i < d * d; i++){
@@ -196,81 +214,82 @@ class Game{
 		// 	this.changeMeshes.push(newInstance)
 		// }
 
-		let g = []
-		g.push("ss")
-		g.push(2)
-		console.log(g)
+
+		
 	}
 
 	renderMapAroundPlayer(){
-
-
-		for(let i = this.player.x - 5; i < this.player.x + 5; i++){
-			for(let j = this.player.y - 5; j < this.player.y + 5; j++){
+		for(let i = 0; i < this.chunk.length; i++){
+			for(let j = 0; j < this.chunk[i].length; j++){
 
 				//if it's off map don't do
-				if(this.map[i] === undefined
-					|| this.map[i][j] === undefined)
+				if(this.chunk[i] === null
+					|| this.chunk[i][j] === null)
 					continue
 
 				let newInstance
 
 				newInstance = this.meshes.blue.createInstance("blah")
 
-				newInstance.x = i
-				newInstance.y = j
+				newInstance.x = this.player.x + (j - 5)
+				newInstance.z = this.player.z + (i - 5)
 
-				if(this.map[i][j] == 1)
-					newInstance.walkable = true
-				else
-					newInstance.walkable = false
+				// newInstance.x = this.player.x - i + 5
+				// newInstance.z = this.player.x - j + 5
 
-				this.map[i][j] = newInstance
 
-				newInstance.position.x = i * this.spacing
-				newInstance.position.z = j * this.spacing
+				newInstance.position.x = newInstance.x * this.spacing
+				newInstance.position.z = newInstance.z * this.spacing
 				newInstance.position.y = 0
 			}
 		}
-	}
 
-	update(){
-		this.scene.render()
 
-		// var forward = this.player.getDirection(BABYLON.Vector3.Forward())
-		// console.log(forward)
 
-		if(this.keyState['r'] == true){
-			// console.log(this.camera.target)
-			this.camera.position.z += 1
-			// let z = this.camera.target.z
-			// z += 1
-			// this.camera.target = new BABYLON.Vector3(
-			// 	this.camera.target.x, this.camera.target.y, z)
-			// this.tasks[0].loadedMeshes[0].rotation.y += 0.05
-			
-			this.changeMeshes[Math.floor(Math.random() * this.changeMeshes.length)] 
-			= this.meshes.tree.createInstance(Math.random())
-		}
 
-		for(let mesh in this.rotateMeshes){
-			// console.log(this.rotateMeshes[mesh])
-			// this.rotateMeshes[mesh].rotation.y += 0.01
-			
-			// this.rotateMeshes[mesh].dispose()
-			// this.rotateMeshes[mesh] = this.meshes.tree.clone()
-			// this.rotateMeshes[mesh].position.y = Math.random() * 100
-		}
+		// for(let i = this.player.x - 5; i < this.player.x + 5; i++){
+		// 	for(let j = this.player.y - 5; j < this.player.y + 5; j++){
+
+		// 		//if it's off map don't do
+		// 		if(this.map[i] === undefined
+		// 			|| this.map[i][j] === undefined)
+		// 			continue
+
+		// 		let newInstance
+
+		// 		newInstance = this.meshes.blue.createInstance("blah")
+
+		// 		newInstance.x = i
+		// 		newInstance.y = j
+
+		// 		if(this.map[i][j] == 1)
+		// 			newInstance.walkable = true
+		// 		else
+		// 			newInstance.walkable = false
+
+		// 		this.map[i][j] = newInstance
+
+		// 		newInstance.position.x = i * this.spacing
+		// 		newInstance.position.z = j * this.spacing
+		// 		newInstance.position.y = 0
+		// 	}
+		// }
 
 		
+	}
+
+    groundPredicate(mesh){
+        if (mesh.id == "ground"){
+            return true
+        }
+        return false
+    }
+
+	update(){
+
+		this.scene.render()
+
 		if(this.keyState['w'] == true){
-			// this.player.position.x += 1
-			// this.player.rotation.y += 0.1
-
-			// var orientation = BABYLON.Vector3.RotationFromAxis(axis1, axis2, axis3);
-			// mesh.rotation = orientation;
-
-
 			this.player.rotation.y = 0 * (Math.PI / 180)
 		}
 		if(this.keyState['d'] == true){
@@ -283,35 +302,65 @@ class Game{
 			this.player.rotation.y = 180 * (Math.PI / 180)
 		}
 
-		let pickResult = this.scene.pick(this.scene.pointerX, this.scene.pointerY)
+		
 
-	    if (pickResult.hit) {
-		    let diffX = pickResult.pickedPoint.x - this.player.position.x
-		    let diffY = pickResult.pickedPoint.z - this.player.position.z
-		    this.player.rotation.y = Math.atan2(diffX,diffY) + 180 * (Math.PI / 180)
 
-		    if(this.keyState["click"]){
-		    	if(pickResult.pickedMesh !== null && pickResult.pickedMesh !== undefined){
-		    		this.player.position = pickResult.pickedMesh.position
-		    		this.player.x = pickResult.pickedMesh.x
-		    		this.player.y = pickResult.pickedMesh.y
-		    		this.renderMapAroundPlayer()
-		    	}
-		    	this.keyState["click"] = false
-	    	}
-    	}
 
-    	let destX = 400
-    	let destZ = 400
+		if(this.keyState["click"]){
+
+	        var hits = this.scene.multiPick(
+	        	this.scene.pointerX, 
+	        	this.scene.pointerY,
+	        	this.groundPredicate,
+	        	this.camera)
+
+	        if(hits[0] !== undefined){
+		        let mouseHit = hits[0].pickedPoint
+
+		        console.log(mouseHit)
+
+		        this.destX = mouseHit.x 
+	    		this.destZ = mouseHit.z 
+
+		     //    this.destX = Math.floor(mouseHit.x / this.spacing)
+	    		// this.destZ = Math.floor(mouseHit.z / this.spacing)
+
+	    		// this.player.x = this.destX
+	    		// this.player.z = this.destZ
+
+	    		this.renderMapAroundPlayer()
+		    }
+
+		    this.keyState["click"] = false
+		}
+
     	let moveInc = new BABYLON.Vector3(
-    		destX - this.player.position.x,
+    		this.destX - this.player.position.x,
     		0,
-    		destZ - this.player.position.z)
-    	.normalize().scale(0.3)
+    		this.destZ - this.player.position.z)
+    	.normalize().scale(1)
 
-    	if(Math.abs(destX - this.player.position.x) > 0.1
-    		|| Math.abs(destZ - this.player.position.z) > 0.1)
+    	if(Math.abs(this.destX - this.player.position.x) > Math.abs(moveInc.x)
+    		|| Math.abs(this.destZ - this.player.position.z) > Math.abs(moveInc.z))
     		this.player.position = this.player.position.add(moveInc)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     	// this.player.position = new BABYLON.Vector3.Lerp(
     	// 	this.player.position,
@@ -321,17 +370,24 @@ class Game{
     	// 		1),
     	// 	0.0001)
 
+
+
+
     	if(this.player !== undefined)
 			this.camera.setTarget(this.player.position)
 
-		let playerTile = this.map[this.player.x][this.player.y]
+		// let playerTile = this.map[this.player.x][this.player.z]
 
-		// this.camera.radius = 200
-		this.camera.setPosition(new BABYLON.Vector3(
-			this.player.position.x - 100, 
-			100, 
-			this.player.position.z - 100))
-		// console.log(this.camera.position)
+		this.ground.position = this.player.position
+
+
+
+		this.camera.radius = 200
+		
+		// this.camera.setPosition(new BABYLON.Vector3(
+		// 	this.player.position.x - 100, 
+		// 	100, 
+		// 	this.player.position.z - 100))
 	}
 }
 

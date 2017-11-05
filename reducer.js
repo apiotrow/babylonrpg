@@ -32,6 +32,8 @@ new Promise(function(resolve, reject) {
 	reduceFiles()
 })
 
+let modeliditer = 0
+
 function reduceFiles(){
 	var promises = []
 
@@ -116,9 +118,15 @@ function reduceFiles(){
 						    	let pathForGloss = "./" 
 						    	+ pathForBabylon.replace(/\\\\/g, "/")
 						    	+ "/" + fileName + ".babylon"
+
+						    	let modelid = modeliditer++
 	
 								//add entry for model in glossary object
 						    	assignObject(gloss, ['models', fileName, "path"], pathForGloss)
+						    	assignObject(gloss, ['models', fileName, "id"], modelid)
+
+						    	//add entry for ID: model
+						    	assignObject(gloss, ['modelids', fileName], modelid)
 
 						    	//execute blender face reduction script
 								exec(babylonCMD, function(error, stdout, stderr) {

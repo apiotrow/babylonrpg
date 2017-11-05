@@ -7,6 +7,8 @@ const cors = require('cors')
 let jsonfile = require('jsonfile')
 let easystarjs = require('easystarjs')
 
+let gloss = require("./assets/gloss.json")
+
 let fs = require('fs')
 
 //setup server
@@ -29,7 +31,7 @@ let d = 300
 for(let i = 0; i < d; i++){
 	let row = []
 	for(let j = 0; j < d; j++){
-		row.push(1)
+		row.push("blue")
 	}
 	map.push(row)
 }
@@ -45,25 +47,48 @@ es.setGrid(map)
 // es.calculate()
 
 
-
 wss.on('connection', function connection(ws, req){
 	//let client know we're ready
 	
-	fs.readFile("assets/models/char/chad.babylon", 'utf8', function read(err, data){
-		// let bab = JSON.parse(data)
 
-		let initData = {
-			h: "initData",
-			v: map
-		}
-		console.log("sending initial data")
-		sendMessage(ws, JSON.stringify(initData))
-	})
+
 
 
 	ws.on('message', function incoming(message){
 		let data = JSON.parse(message)
 		let h = data.h
+
+		if(h == "chunk"){
+			let mapZ = data.v[0]
+			let mapX = data.v[1]
+
+			let chunk = []
+
+
+			for(let i = mapZ - 5; i < mapZ + 5; i++){
+				let row = []
+				for(let j = mapX - 5; j < mapX + 5; j++){
+
+					//if it's off map don't do
+					if(map[i] === undefined
+						|| map[i][j] === undefined)
+					{
+						row.push(null)
+						continue
+					}
+
+					row.push(gloss.modelids[map[i][j]])
+				}
+				chunk.push(row)
+			}
+
+			let chunkSend = {
+				h: "chunk",
+				v: chunk
+			}
+
+			sendMessage(ws, JSON.stringify(chunkSend))
+		}
 
 		//player requests to move
 		if(h == "moveTo"){
