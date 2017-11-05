@@ -145,8 +145,6 @@ wss.on('connection', function connection(ws, req){
 
 			let pID = data.v.ID
 
-			console.log("request to move to " + destX + "," + destZ)
-
 			if(map[destX] === undefined || map[destX][destZ] === undefined
 				|| map[playerX] === undefined || map[playerX][playerZ] === undefined)
 				return

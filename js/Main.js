@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	let playerTileX = 1
 	let playerTileZ = 3
 	let gameInstance = new Game(
- 		this, engine, canvas, scene,
+ 		engine, canvas, scene,
  		appW, appH,
  		ws)
 
@@ -60,15 +60,15 @@ document.addEventListener('DOMContentLoaded', function () {
 		let data = JSON.parse(event.data)
 
 		if(data.h == "chunk"){
-			gameInstance.newChunk(data.v.chunk, data.v.r)
+			gameInstance.renderChunk(data.v.chunk, data.v.r)
 		}
 
 		if(data.h == "path"){
-			gameInstance.setNextDest(data.v[0], data.v[1])
+			gameInstance.changeDest(data.v[0], data.v[1])
 		}
 
 		if(data.h == "nextInPath"){
-			gameInstance.nextDestWait(data.v[0], data.v[1])
+			gameInstance.prepareNextDest(data.v[0], data.v[1])
 		}
 	}
 })

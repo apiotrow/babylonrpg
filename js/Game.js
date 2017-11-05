@@ -1,41 +1,39 @@
 var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 let gloss = require("../assets/gloss.json")
+var sizeof = require('sizeof')
 
 class Game{
-	constructor(main, engine, canvas, scene, appW, appH, ws){
-
+	constructor(engine, canvas, scene, appW, appH, ws){
 		this.scene = scene
 		this.engine = engine
-		this.chunk = []
 		this.ws = ws
-		this.main = main
+
 		this.ID
 
+		this.chunk = []
 		this.meshes = {}
 
-		let keyCodes = {
-			S: 83,
-			A: 65,
-			W: 87,
-			D: 68
-		}
+		this.spacing = 15
+		this.radius = 20
 
-		this.ground = BABYLON.Mesh.CreateGround("ground", 500, 500, 10, scene)
+		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
 
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
-		this.scene = scene
 		// var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
 		var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
+		camera.minZ = -90
 
 		camera.inputs.attached.keyboard.detachControl()
 		camera.inputs.attached.pointers.detachControl()
 		camera.inputs.attached.mousewheel.detachControl()
 	    camera.attachControl(canvas, false)
 		this.camera = camera
+
+		console.log(this.camera)
 		
-		let divisor = 5
+		let divisor = 6
 		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		camera.orthoTop = appH / divisor
 		camera.orthoBottom = -appH / divisor
@@ -75,10 +73,12 @@ class Game{
 		window.addEventListener("resize", function () {
 		    engine.resize()
 		})
-
-		this.spacing = 15
 	}
 
+	/**
+	 * Request a movement path to a particular destination
+	 * from server
+	 */ 
 	requestPath(px, pz, dx, dz){
 		let mess = {
 			h: "path",
@@ -88,45 +88,32 @@ class Game{
 				pz: pz,
 				dx: dx,
 				dz: dz,
-				r: 4
+				r: this.radius
 			}
 		}
 		this.ws.send(JSON.stringify(mess))
 	}
 
+	/**
+	 * Request a chunk from the server
+	 */ 
 	requestChunk(x, y){
 		let mess = {
 			h: "chunk",
 			v: {
 				cent: [x, y],
-				r: 4
+				r: this.radius
 			}
 		}
 		this.ws.send(JSON.stringify(mess))
 	}
 
 	initGame(tasks, playerTileX, playerTileZ){
-		this.setupMeshes(tasks)
-
-		this.engine.runRenderLoop( ()=> {
-			this.update()
-		})
-
-		this.player.tileX = playerTileX
-		this.player.tileZ = playerTileZ
-		this.player.position.x = this.tileToWorld(this.player.tileX)
-		this.player.position.z = this.tileToWorld(this.player.tileZ)
-
-		this.destWorldX = this.player.position.x
-    	this.destWorldZ = this.player.position.z
-
-    	this.requestChunk(this.player.tileX, this.player.tileZ)
-	}
-
-	setupMeshes(tasks){
 		//make non-specular material to prevent shine
 		var mat = new BABYLON.StandardMaterial("mat", this.scene)
 		mat.specularColor = BABYLON.Color3.Black()
+
+		// this.pool = {}
 
 		//setup meshes
 		for(let i = 0; i < tasks.length; i++){
@@ -134,31 +121,61 @@ class Game{
 			let mesh = tasks[i].loadedMeshes[0]
 
 			mesh.material = mat
+
+			//make shading more angular
 			mesh.convertToFlatShadedMesh()
 
+			//this doesn't seem to change anything
 			mesh.useVertexColors = true
+			
+			//give meshes an outline
 			mesh.outlineWidth = 0.15
 			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
 			mesh.renderOutline = true
 
+			//add mesh to mesh holder
 			this.meshes[meshName] = mesh
+
+			// this.pool[meshName] = []
+			// for(let i = 0; i < 300; i++){
+			// 	let ni = mesh.createInstance()
+			// 	this.pool[meshName].push(ni)
+			// }
 		}
 
+		//init player
 		this.player = this.meshes.chad
+		this.player.tileX = playerTileX
+		this.player.tileZ = playerTileZ
+		this.player.position.x = this.tileToWorld(this.player.tileX)
+		this.player.position.z = this.tileToWorld(this.player.tileZ)
+
+		//start update loop
+		this.engine.runRenderLoop( ()=> {
+			this.update()
+		})
+
+		//init player destination to their current position
+		this.destWorldX = this.player.position.x
+    	this.destWorldZ = this.player.position.z
+
+    	//render first chunk around player
+    	this.requestChunk(this.player.tileX, this.player.tileZ)
+
+    	this.chunk = []
+		for(let x = 0; x < (this.radius * 2) + 1; x++){
+			let col = []
+			for(let z = 0; z < (this.radius * 2) + 1; z++){
+				let newInstance = this.meshes["wall1"].createInstance()
+				col.push(newInstance)
+			}
+			this.chunk.push(col)
+		}
+
+		// console.log(sizeof.sizeof(this) / 1000000)
 	}
 
 	renderChunk(chunk, r){
-		//dispose all meshes in old chunk
-		//and reset all entries
-		for(let x = 0; x < this.chunk.length; x++){
-			for(let z = 0; z < this.chunk[x].length; z++){
-				if(this.chunk[x][z] !== null){
-					this.chunk[x][z].dispose()
-				}
-				this.chunk[x][z] = null
-			}
-		}
-
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
 
@@ -172,20 +189,87 @@ class Game{
 				//convert model ID to model name
 				let modelName = gloss.IDToModel[chunk[x][z]]
 
-				let newInstance = this.meshes[modelName].createInstance()
+				this.chunk[x][z].setVerticesData(
+					BABYLON.VertexData.ExtractFromMesh(this.meshes.blue)
+					)
 
-				newInstance.tileX = this.player.tileX + (x - r)
-				newInstance.tileZ = this.player.tileZ + (z - r)
+				this.chunk[x][z].tileX = this.player.tileX + (x - r)
+				this.chunk[x][z].tileZ = this.player.tileZ + (z - r)
 
-				newInstance.position.x = this.tileToWorld(newInstance.tileX)
-				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
-				newInstance.position.y = 0
-
-				this.chunk[x][z] = newInstance
+				this.chunk[x][z].position.x = this.tileToWorld(this.chunk[x][z].tileX)
+				this.chunk[x][z].position.z = this.tileToWorld(this.chunk[x][z].tileZ)
+				this.chunk[x][z].position.y = 0
 			}
 		}
 	}
 
+	/**
+	 * Render the tiles around the player by a certain radius
+	 */ 
+	// renderChunk(chunk, r){
+	// 	//if this.chunk hasn't been initialized (game just
+ //    	//started), or if new chunk is a different dimension 
+ //    	//than previous chunk, remake this.chunk 
+ //    	if(
+ //    		this.chunk !== undefined
+ //    		&& this.chunk.length != (r * 2) + 1)
+ //    	{
+ //    		this.chunk = []
+ //    		for(let x = 0; x < (r * 2) + 1; x++){
+ //    			let col = []
+	// 			for(let z = 0; z < (r * 2) + 1; z++){
+	// 				col.push(null)
+	// 			}
+	// 			this.chunk.push(col)
+	// 		}
+ //    	}
+
+	// 	//dispose all meshes in old chunk
+	// 	//and reset all entries
+	// 	for(let x = 0; x < this.chunk.length; x++){
+	// 		for(let z = 0; z < this.chunk[x].length; z++){
+	// 			if(this.chunk[x][z] !== null){
+	// 				this.chunk[x][z].dispose()
+	// 			}
+	// 			this.chunk[x][z] = null
+	// 		}
+	// 	}
+
+	// 	for(let x = 0; x < chunk.length; x++){
+	// 		for(let z = 0; z < chunk[x].length; z++){
+
+	// 			//if tile is off map it will be undefined
+	// 			if(chunk[x] === null
+	// 				|| chunk[x][z] === null)
+	// 			{
+	// 				continue
+	// 			}
+
+	// 			//convert model ID to model name
+	// 			let modelName = gloss.IDToModel[chunk[x][z]]
+
+	// 			let newInstance = this.meshes[modelName].createInstance()
+
+	// 			newInstance.tileX = this.player.tileX + (x - r)
+	// 			newInstance.tileZ = this.player.tileZ + (z - r)
+
+	// 			newInstance.position.x = this.tileToWorld(newInstance.tileX)
+	// 			newInstance.position.z = this.tileToWorld(newInstance.tileZ)
+	// 			newInstance.position.y = 0
+
+	// 			this.chunk[x][z] = newInstance
+
+	// 			// BABYLON.VertexData.ExtractFromMesh(this.meshes.chad).applyToMesh(newInstance, false)
+
+	// 			// console.log(newInstance)
+
+	// 		}
+	// 	}
+	// }
+
+	/**
+	 * Filter for raycasting that makes it only hit ground
+	 */ 
     groundPredicate(mesh){
         if (mesh.id == "ground"){
             return true
@@ -193,43 +277,27 @@ class Game{
         return false
     }
 
+    /**
+     * Take a world coordinate and convert it to a tile coordinate
+     */ 
     worldToTile(worldCoord){
     	return Math.floor((worldCoord + (this.spacing / 2)) / this.spacing)
     }
 
+    /**
+     * Take a tile coordinate and convert it to a world coordinate
+     */ 
     tileToWorld(tileCoord){
     	return (tileCoord * this.spacing)
     }
 
-    newChunk(chunk, r){
-    	//if this.chunk hasn't been initialized (game just
-    	//started), or if new chunk is a different dimension 
-    	//than previous chunk, remake this.chunk 
-    	if(
-    		this.chunk !== undefined
-    		&& this.chunk.length != (r * 2) + 1)
-    	{
-    		this.chunk = []
-    		for(let x = 0; x < (r * 2) + 1; x++){
-    			let col = []
-				for(let z = 0; z < (r * 2) + 1; z++){
-					col.push(null)
-				}
-				this.chunk.push(col)
-			}
-    	}
-
-    	this.renderChunk(chunk, r)
-    }
-
-    setNextDest(x, z){
+    /**
+     * Change destination so player will begin moving
+     * toward it
+     */ 
+    changeDest(x, z){
     	this.destWorldX = this.tileToWorld(x)
 		this.destWorldZ = this.tileToWorld(z)
-
-		// this.player.tileX = x
-		// this.player.tileZ = z
-
-		this.requestChunk(x, z)
 
 		let mess = {
 			h: "nextInPath",
@@ -238,13 +306,14 @@ class Game{
 		this.ws.send(JSON.stringify(mess))
     }
 
-    nextDestWait(x, z){
+    /**
+     * Get the next destination in path ready
+     */ 
+    prepareNextDest(x, z){
     	this.nextDest = [x, z]
     }
 
 	update(){
-		
-
 		if(this.keyState['w'] == true){
 			this.player.rotation.y = 0 * (Math.PI / 180)
 		}
@@ -271,47 +340,46 @@ class Game{
 		        let tileXHit = this.worldToTile(mouseHit.x)
 		        let tileZHit = this.worldToTile(mouseHit.z)
 
-		     //    this.destWorldX = this.tileToWorld(tileXHit)
-	    		// this.destWorldZ = this.tileToWorld(tileZHit)
-
-	    		// this.requestChunk(tileXHit, tileZHit)
-
 	    		this.requestPath(
     				this.player.tileX,
     				this.player.tileZ,
     				tileXHit,
     				tileZHit
     				)
-
-				// this.player.tileX = tileXHit
-    // 			this.player.tileZ = tileZHit
 		    }
 
 		    this.keyState["click"] = false
 		}
 
+		//increment of movement per frame
     	let moveInc = new BABYLON.Vector3(
     		this.destWorldX - this.player.position.x,
     		0,
     		this.destWorldZ - this.player.position.z)
     	.normalize().scale(1)
 
+    	//if player hasn't reached next spot, move them
     	if(Math.abs(this.destWorldX - this.player.position.x) > Math.abs(moveInc.x)
     		|| Math.abs(this.destWorldZ - this.player.position.z) > Math.abs(moveInc.z))
     	{
     		//continue moving toward destination
     		this.player.position = this.player.position.add(moveInc)
     	}else{
-    		// console.log("there")
-
-    		if(this.nextDest !== undefined
-    			&& this.nextDest[0] != -1
-    			&& this.nextDest[1] != -1){
-    			this.setNextDest(this.nextDest[0], this.nextDest[1])
-    		}
-
+    		//player arrived at next spot. change their tile coords.
     		this.player.tileX = this.worldToTile(this.destWorldX)
     		this.player.tileZ = this.worldToTile(this.destWorldZ)
+
+    		//get next spot in path if it exists.
+    		//else just sit there
+    		if(this.nextDest !== undefined
+    			&& this.nextDest[0] != -1
+    			&& this.nextDest[1] != -1)
+    		{
+    			this.changeDest(this.nextDest[0], this.nextDest[1])
+
+    			//render new chunk
+    			this.requestChunk(this.player.tileX, this.player.tileZ)
+    		}
     	}
 
 
@@ -331,11 +399,7 @@ class Game{
     	if(this.player !== undefined)
 			this.camera.setTarget(this.player.position)
 
-		// let playerTile = this.map[this.player.x][this.player.z]
-
 		this.ground.position = this.player.position
-
-
 
 		this.camera.radius = 200
 		
