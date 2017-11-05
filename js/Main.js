@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function () {
  		ws)
 
 	ws.onopen = ()=>{
+		let playerID = Math.random()
+		let mess = {
+			h: "login",
+			v: playerID
+		}
+		gameInstance.ID = playerID
+		ws.send(JSON.stringify(mess))
+
 		let assetsManager = new BABYLON.AssetsManager(scene)
 		assetsManager.useDefaultLoadingScreen = false
 
@@ -53,6 +61,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if(data.h == "chunk"){
 			gameInstance.newChunk(data.v.chunk, data.v.r)
+		}
+
+		if(data.h == "path"){
+			gameInstance.setNextDest(data.v[0], data.v[1])
+		}
+
+		if(data.h == "nextInPath"){
+			gameInstance.nextDestWait(data.v[0], data.v[1])
 		}
 	}
 })

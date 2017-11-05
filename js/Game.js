@@ -10,6 +10,7 @@ class Game{
 		this.chunk = []
 		this.ws = ws
 		this.main = main
+		this.ID
 
 		this.meshes = {}
 
@@ -34,7 +35,7 @@ class Game{
 	    camera.attachControl(canvas, false)
 		this.camera = camera
 		
-		let divisor = 9
+		let divisor = 5
 		camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		camera.orthoTop = appH / divisor
 		camera.orthoBottom = -appH / divisor
@@ -78,6 +79,32 @@ class Game{
 		this.spacing = 15
 	}
 
+	requestPath(px, pz, dx, dz){
+		let mess = {
+			h: "path",
+			v: {
+				ID: this.ID,
+				px: px,
+				pz: pz,
+				dx: dx,
+				dz: dz,
+				r: 4
+			}
+		}
+		this.ws.send(JSON.stringify(mess))
+	}
+
+	requestChunk(x, y){
+		let mess = {
+			h: "chunk",
+			v: {
+				cent: [x, y],
+				r: 4
+			}
+		}
+		this.ws.send(JSON.stringify(mess))
+	}
+
 	initGame(tasks, playerTileX, playerTileZ){
 		this.setupMeshes(tasks)
 
@@ -93,14 +120,7 @@ class Game{
 		this.destWorldX = this.player.position.x
     	this.destWorldZ = this.player.position.z
 
-    	let requestChunk = {
-			h: "chunk",
-			v: {
-				cent: [this.player.tileX, this.player.tileZ],
-				r: 5
-			}
-		}
-		this.ws.send(JSON.stringify(requestChunk))
+    	this.requestChunk(this.player.tileX, this.player.tileZ)
 	}
 
 	setupMeshes(tasks){
@@ -127,8 +147,7 @@ class Game{
 		this.player = this.meshes.chad
 	}
 
-	renderChunk(chunk){
-
+	renderChunk(chunk, r){
 		//dispose all meshes in old chunk
 		//and reset all entries
 		for(let x = 0; x < this.chunk.length; x++){
@@ -155,8 +174,8 @@ class Game{
 
 				let newInstance = this.meshes[modelName].createInstance()
 
-				newInstance.tileX = this.player.tileX + (x - 5)
-				newInstance.tileZ = this.player.tileZ + (z - 5)
+				newInstance.tileX = this.player.tileX + (x - r)
+				newInstance.tileZ = this.player.tileZ + (z - r)
 
 				newInstance.position.x = this.tileToWorld(newInstance.tileX)
 				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
@@ -183,30 +202,48 @@ class Game{
     }
 
     newChunk(chunk, r){
-
     	//if this.chunk hasn't been initialized (game just
     	//started), or if new chunk is a different dimension 
     	//than previous chunk, remake this.chunk 
     	if(
     		this.chunk !== undefined
-    		&& this.chunk.length != r * 2)
+    		&& this.chunk.length != (r * 2) + 1)
     	{
     		this.chunk = []
-    		for(let x = 0; x < r * 2; x++){
+    		for(let x = 0; x < (r * 2) + 1; x++){
     			let col = []
-				for(let z = 0; z < r * 2; z++){
+				for(let z = 0; z < (r * 2) + 1; z++){
 					col.push(null)
 				}
 				this.chunk.push(col)
 			}
     	}
 
-    	this.renderChunk(chunk)
+    	this.renderChunk(chunk, r)
+    }
+
+    setNextDest(x, z){
+    	this.destWorldX = this.tileToWorld(x)
+		this.destWorldZ = this.tileToWorld(z)
+
+		// this.player.tileX = x
+		// this.player.tileZ = z
+
+		this.requestChunk(x, z)
+
+		let mess = {
+			h: "nextInPath",
+			v: this.ID
+		}
+		this.ws.send(JSON.stringify(mess))
+    }
+
+    nextDestWait(x, z){
+    	this.nextDest = [x, z]
     }
 
 	update(){
-
-		this.scene.render()
+		
 
 		if(this.keyState['w'] == true){
 			this.player.rotation.y = 0 * (Math.PI / 180)
@@ -222,7 +259,6 @@ class Game{
 		}
 
 		if(this.keyState["click"]){
-
 	        var hits = this.scene.multiPick(
 	        	this.scene.pointerX, 
 	        	this.scene.pointerY,
@@ -235,20 +271,20 @@ class Game{
 		        let tileXHit = this.worldToTile(mouseHit.x)
 		        let tileZHit = this.worldToTile(mouseHit.z)
 
-		        this.destWorldX = this.tileToWorld(tileXHit)
-	    		this.destWorldZ = this.tileToWorld(tileZHit)
+		     //    this.destWorldX = this.tileToWorld(tileXHit)
+	    		// this.destWorldZ = this.tileToWorld(tileZHit)
 
-	    		let requestChunk = {
-					h: "chunk",
-					v: {
-						cent: [tileXHit, tileZHit],
-						r: 5
-					}
-				}
-				this.ws.send(JSON.stringify(requestChunk))
+	    		// this.requestChunk(tileXHit, tileZHit)
 
-				this.player.tileX = tileXHit
-    			this.player.tileZ = tileZHit
+	    		this.requestPath(
+    				this.player.tileX,
+    				this.player.tileZ,
+    				tileXHit,
+    				tileZHit
+    				)
+
+				// this.player.tileX = tileXHit
+    // 			this.player.tileZ = tileZHit
 		    }
 
 		    this.keyState["click"] = false
@@ -266,8 +302,16 @@ class Game{
     		//continue moving toward destination
     		this.player.position = this.player.position.add(moveInc)
     	}else{
-    		// this.player.tileX = this.worldToTile(this.destWorldX)
-    		// this.player.tileZ = this.worldToTile(this.destWorldZ)
+    		// console.log("there")
+
+    		if(this.nextDest !== undefined
+    			&& this.nextDest[0] != -1
+    			&& this.nextDest[1] != -1){
+    			this.setNextDest(this.nextDest[0], this.nextDest[1])
+    		}
+
+    		this.player.tileX = this.worldToTile(this.destWorldX)
+    		this.player.tileZ = this.worldToTile(this.destWorldZ)
     	}
 
 
@@ -299,6 +343,8 @@ class Game{
 			this.player.position.x - 100, 
 			100, 
 			this.player.position.z - 100))
+
+		this.scene.render()
 	}
 }
 
