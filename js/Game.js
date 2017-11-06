@@ -15,7 +15,7 @@ class Game{
 		this.meshes = {}
 
 		this.spacing = 15
-		this.radius = 20
+		this.radius = 10
 
 		this.newDestSelected = false
 		this.newDestSelectedX
@@ -24,28 +24,18 @@ class Game{
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
 
-		this.camType = "FollowCamera"
 		this.camera
 
 		this.playerFollow = new BABYLON.Mesh()
 
 		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
-		// var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(100, 100, -100), scene)
-		// var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 0, 0), scene)
 		
-		if(this.camType == "FollowCamera")
-			this.camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 10, -10), scene)
-		
-		// var camera = new BABYLON.TargetCamera("FollowCam", new BABYLON.Vector3(0, 0, 0), scene)
-		// camera.parent = this.player
+		this.camera = new BABYLON.FollowCamera(
+			"FollowCam", 
+			new BABYLON.Vector3(0, 10, -10), 
+			scene)
 
 		this.camera.minZ = -90
-
-		// camera.inputs.attached.keyboard.detachControl()
-		// camera.inputs.attached.pointers.detachControl()
-		// camera.inputs.attached.mousewheel.detachControl()
-	 //    camera.attachControl(canvas, false)
-		// camera.noRotationConstraint = true
 
 		console.log(this.camera)
 		
@@ -80,7 +70,6 @@ class Game{
 	        handler: onKeyUp
 	    }])
 
-
 	    let angles = 0.15
 	    var light5 = new BABYLON.HemisphericLight("light3", 
 	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
@@ -89,7 +78,24 @@ class Game{
 		window.addEventListener("resize", function () {
 		    engine.resize()
 		})
+
+
 	}
+
+	// resolveAfter2Seconds(x) { 
+	//   return new Promise(resolve => {
+	//     setTimeout(() => {
+	//       resolve(x);
+	//     }, 2000);
+	//   });
+	// }
+
+	// async doEverything() {
+ //    // const sumOfItAll = await http.scrapeTheInternet() +
+ //    //   await new Promise((resolve, reject) =>
+ //    //     http.asyncCallback((e, result) => !e ? resolve(result) : reject(e)))
+ //    // return this.resp = sumOfItAll
+ //  }
 
 	/**
 	 * Request a movement path to a particular destination
@@ -174,12 +180,13 @@ class Game{
 
 			//add mesh to mesh holder
 			this.meshes[meshName] = mesh
+		}
 
-			// this.pool[meshName] = []
-			// for(let i = 0; i < 300; i++){
-			// 	let ni = mesh.createInstance()
-			// 	this.pool[meshName].push(ni)
-			// }
+		this.pool["blue"] = []
+		for(let i = 0; i < ((this.radius * 2) + 1) * ((this.radius * 2) + 1); i++){
+			let ni = this.meshes["blue"].createInstance()
+			// ni.setEnabled(false)
+			this.pool["blue"].push(ni)
 		}
 
 		//init player
@@ -194,10 +201,8 @@ class Game{
 		// this.player.position.z = this.tileToWorld(this.player.tileZ)
 		this.player.parent = this.playerFollow
 
-		if(this.camType == "FollowCamera"){
-			this.camera.lockedTarget = this.playerFollow
-			this.camera.cameraAcceleration = 0.5
-		}
+		this.camera.lockedTarget = this.playerFollow
+		this.camera.cameraAcceleration = 0.5
 
 		//start update loop
 		this.engine.runRenderLoop( ()=> {
@@ -224,7 +229,8 @@ class Game{
 		// console.log(sizeof.sizeof(this) / 1000000)
 	}
 
-	/**
+
+		/**
 	 * Render the tiles around the player by a certain radius
 	 */ 
 	renderChunk(chunk, r){
@@ -245,17 +251,7 @@ class Game{
 			}
     	}
 
-		//dispose all meshes in old chunk
-		//and reset all entries
-		for(let x = 0; x < this.chunk.length; x++){
-			for(let z = 0; z < this.chunk[x].length; z++){
-				if(this.chunk[x][z] !== null){
-					this.chunk[x][z].dispose()
-				}
-				this.chunk[x][z] = null
-			}
-		}
-
+		let poolIter = 0
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
 
@@ -269,7 +265,10 @@ class Game{
 				//convert model ID to model name
 				let modelName = gloss.IDToModel[chunk[x][z]]
 
-				let newInstance = this.meshes[modelName].createInstance()
+
+				let newInstance = this.pool["blue"][poolIter++]
+// if(newInstance !== undefined){
+				// newInstance.setEnabled(true)
 
 				newInstance.tileX = this.player.tileX + (x - r)
 				newInstance.tileZ = this.player.tileZ + (z - r)
@@ -279,11 +278,73 @@ class Game{
 				newInstance.position.y = 0
 
 				this.chunk[x][z] = newInstance
+			// }
 // this.chunk[x][z].setEnabled()
 
 			}
 		}
 	}
+
+// 	/**
+// 	 * Render the tiles around the player by a certain radius
+// 	 */ 
+// 	renderChunk(chunk, r){
+// 		//if this.chunk hasn't been initialized (game just
+//     	//started), or if new chunk is a different dimension 
+//     	//than previous chunk, remake this.chunk 
+//     	if(
+//     		this.chunk !== undefined
+//     		&& this.chunk.length != (r * 2) + 1)
+//     	{
+//     		this.chunk = []
+//     		for(let x = 0; x < (r * 2) + 1; x++){
+//     			let col = []
+// 				for(let z = 0; z < (r * 2) + 1; z++){
+// 					col.push(null)
+// 				}
+// 				this.chunk.push(col)
+// 			}
+//     	}
+
+// 		//dispose all meshes in old chunk
+// 		//and reset all entries
+// 		for(let x = 0; x < this.chunk.length; x++){
+// 			for(let z = 0; z < this.chunk[x].length; z++){
+// 				if(this.chunk[x][z] !== null){
+// 					this.chunk[x][z].dispose()
+// 				}
+// 				this.chunk[x][z] = null
+// 			}
+// 		}
+
+// 		for(let x = 0; x < chunk.length; x++){
+// 			for(let z = 0; z < chunk[x].length; z++){
+
+// 				//if tile is off map it will be undefined
+// 				if(chunk[x] === null
+// 					|| chunk[x][z] === null)
+// 				{
+// 					continue
+// 				}
+
+// 				//convert model ID to model name
+// 				let modelName = gloss.IDToModel[chunk[x][z]]
+
+// 				let newInstance = this.meshes[modelName].createInstance()
+
+// 				newInstance.tileX = this.player.tileX + (x - r)
+// 				newInstance.tileZ = this.player.tileZ + (z - r)
+
+// 				newInstance.position.x = this.tileToWorld(newInstance.tileX)
+// 				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
+// 				newInstance.position.y = 0
+
+// 				this.chunk[x][z] = newInstance
+// // this.chunk[x][z].setEnabled()
+
+// 			}
+// 		}
+// 	}
 
 	/**
 	 * Filter for raycasting that makes it only hit ground
@@ -388,8 +449,10 @@ class Game{
 		        //moving, cancel current path, wait until character gets to next
 		        //tile in path, then get new path. this will prevent calls to server
 		        //happening too frequently.
-	        	if(Math.abs(this.destWorldX - this.playerFollow.position.x) > Math.abs(moveInc.x)
-		    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) > Math.abs(moveInc.z))
+	        	if(Math.abs(this.destWorldX - this.playerFollow.position.x) 
+	        		> Math.abs(moveInc.x)
+		    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) 
+		    		> Math.abs(moveInc.z))
 		    	{
 		    		//flag so we can get new path once we reach the next tile
 		    		this.newDestSelected = true
@@ -414,8 +477,10 @@ class Game{
 		}
 
     	//if player hasn't reached next spot, move them
-    	if(Math.abs(this.destWorldX - this.playerFollow.position.x) > Math.abs(moveInc.x)
-    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) > Math.abs(moveInc.z))
+    	if(Math.abs(this.destWorldX - this.playerFollow.position.x) 
+    		> Math.abs(moveInc.x)
+    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) 
+    		> Math.abs(moveInc.z))
     	{
     		let newRot
 
@@ -676,15 +741,15 @@ class Game{
 
 		this.ground.position = this.playerFollow.position
 
-		if(this.camType == "FollowCamera"){
-			this.camera.radius = 200
-			this.camera.heightOffset = 200
-			
 
-			// this.camera.position.y = 200
-			// this.camera.position.x = this.player.position.x - 100
-			// this.camera.position.z = this.player.position.z - 100
-		}
+		this.camera.radius = 200
+		this.camera.heightOffset = 200
+		
+
+		// this.camera.position.y = 200
+		// this.camera.position.x = this.player.position.x - 100
+		// this.camera.position.z = this.player.position.z - 100
+
 		// this.camera.rotation.y += 0.5
 		// this.camera.position.x = this.player.position.x - 100
 		
