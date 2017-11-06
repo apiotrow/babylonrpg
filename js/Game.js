@@ -45,7 +45,7 @@ class Game{
 
 		console.log(this.camera)
 		
-		let divisor = 6
+		let divisor = 8
 		this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
 		this.camera.orthoTop = appH / divisor
 		this.camera.orthoBottom = -appH / divisor
@@ -161,6 +161,7 @@ class Game{
 		this.player.tileZ = playerTileZ
 		this.playerFollow.position.x = this.tileToWorld(this.player.tileX)
 		this.playerFollow.position.z = this.tileToWorld(this.player.tileZ)
+		this.player.newRot = 90 * (Math.PI / 180)
 
 		// this.player.position.x = this.tileToWorld(this.player.tileX)
 		// this.player.position.z = this.tileToWorld(this.player.tileZ)
@@ -333,21 +334,97 @@ class Game{
     	this.nextDest = [x, z]
     }
 
+    faceNegZ(mesh){
+		mesh.rotation.y = this.negZ()
+    }
+
+    facePosZ(mesh){
+		mesh.rotation.y = this.posZ()
+    }
+
+    facePosX(mesh){
+		mesh.rotation.y = this.posX()
+    }
+
+    faceNegX(mesh){
+    	mesh.rotation.y = this.negX()
+    }
+
+    negZ(){
+    	return 0 * (Math.PI / 180)
+    }
+
+    posZ(){
+    	return 180 * (Math.PI / 180)
+    }
+
+    posX(){
+    	return 270 * (Math.PI / 180)
+    }
+
+    negX(){
+    	return 90 * (Math.PI / 180)
+    }
+
+    negZnegX(){
+    	return 45 * (Math.PI / 180)
+    }
+
+    posZnegX(){
+    	return 135 * (Math.PI / 180)
+    }
+
+    negZposX(){
+    	return 315 * (Math.PI / 180)
+    }
+
+    posZposX(){
+    	return 225 * (Math.PI / 180)
+    }
+
 	update(){
 		this.scene.render()
 
+
 		if(this.keyState['w'] == true){
-			this.player.rotation.y = 0 * (Math.PI / 180)
+			this.player.rotation.y -= 0.1
+			// this.player.newRot = this.negX()
 		}
 		if(this.keyState['d'] == true){
-			this.player.rotation.y = 270 * (Math.PI / 180)
+			this.camera.rotationOffset -= 0.5
 		}
 		if(this.keyState['a'] == true){
-			this.player.rotation.y = 90 * (Math.PI / 180)
+			this.camera.rotationOffset += 0.5
 		}
 		if(this.keyState['s'] == true){
-			this.player.rotation.y = 180 * (Math.PI / 180)
+			this.player.rotation.y += 0.1
+			// this.player.newRot = this.negZposX()
 		}
+
+		// let rot = (this.player.rotation.y /  Math.PI / 2) 
+		// - Math.floor(this.player.rotation.y /  Math.PI / 2)
+
+		
+
+		let ninety = (this.negX() /  Math.PI / 2) 
+		- Math.floor(this.negX() /  Math.PI / 2)
+
+		let threefifteen = (this.negZposX() /  Math.PI / 2) 
+		- Math.floor(this.negZposX() /  Math.PI / 2)
+
+		// console.log(ninety + (1 - threefifteen))
+		// console.log(threefifteen + (1 - ninety))
+
+		// let vec1 = new BABYLON.Vector3(0, this.negX(), 0)
+		// let vec2 = new BABYLON.Vector3(0, this.posZ(), 0)
+
+		// console.log(Math.acos(BABYLON.Vector3.Dot(vec1, vec2) / Math.abs(vec1) ))
+
+		// console.log(Math.atan2(vec2.y, vec1.x) - Math.atan2(vec2.y, vec1.y))
+		// console.log(vec2.subtract(vec1).y * (180 / Math.PI))
+
+		// console.log(BABYLON.Vector3.Dot(vec1, vec2))
+		// let lefty = rot
 
 		if(this.keyState["click"]){
 	        var hits = this.scene.multiPick(
@@ -368,6 +445,7 @@ class Game{
     				tileXHit,
     				tileZHit
     				)
+
 		    }
 
 		    this.keyState["click"] = false
@@ -384,6 +462,115 @@ class Game{
     	if(Math.abs(this.destWorldX - this.playerFollow.position.x) > Math.abs(moveInc.x)
     		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) > Math.abs(moveInc.z))
     	{
+    		let newRot
+
+    		if(this.player.tileX > this.worldToTile(this.destWorldX)
+    			&&
+    			this.player.tileZ > this.worldToTile(this.destWorldZ))
+    		{
+    			newRot = this.negZnegX()
+    		}else if(this.player.tileX > this.worldToTile(this.destWorldX)
+    			&&
+    			this.player.tileZ < this.worldToTile(this.destWorldZ))
+    		{
+    			newRot = this.posZnegX()
+    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)
+    			&&
+    			this.player.tileZ > this.worldToTile(this.destWorldZ))
+    		{
+    			newRot = this.negZposX()
+    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)
+    			&&
+    			this.player.tileZ < this.worldToTile(this.destWorldZ))
+    		{
+    			newRot = this.posZposX()
+    		}else if(this.player.tileX > this.worldToTile(this.destWorldX)){
+    			newRot = this.negX()
+    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)){
+    			newRot = this.posX()
+    		}else if(this.player.tileZ < this.worldToTile(this.destWorldZ)){
+    			newRot = this.posZ()
+    		}else if(this.player.tileZ > this.worldToTile(this.destWorldZ)){
+    			newRot = this.negZ()
+    		}
+
+    		// console.log(this.player.newRot * (180 / Math.PI))
+
+   //  		let pDeg = this.player.newRot * (180 / Math.PI)
+
+			// while(pDeg < 0)
+			// 	pDeg += 360
+			// while(pDeg > 360)
+			// 	pDeg -= 360
+
+			// let nDeg = newRot * (180 / Math.PI)
+
+			// while(nDeg < 0)
+			// 	nDeg += 360
+			// while(nDeg > 360)
+			// 	nDeg -= 360
+
+			// console.log(pDeg + ", " + nDeg)
+
+			// if(nDeg > pDeg){
+			// 	if(pDeg + (360 - nDeg) < (nDeg - pDeg)){
+			// 		this.player.rotDir = "left"
+			// 	}
+			// }else{
+			// 	if(nDeg + (360 - pDeg) < (pDeg - nDeg)){
+			// 		this.player.rotDir = "right"
+			// 	}
+			// }
+
+
+			let pDeg = this.player.newRot * (180 / Math.PI)
+
+			while(pDeg < 0)
+				pDeg += 360
+			while(pDeg > 360)
+				pDeg -= 360
+
+			let nDeg = newRot * (180 / Math.PI)
+
+			while(nDeg < 0)
+				nDeg += 360
+			while(nDeg > 360)
+				nDeg -= 360
+
+			let left = this.player.newRot - newRot
+    		let right = newRot - this.player.newRot
+			
+			// if(pDeg > 180){
+			// 	if(nDeg < pDeg && nDeg > pDeg - 180){
+			// 		this.player.rotDir = "left"
+			// 	}else{
+			// 		this.player.rotDir = "right"
+			// 	}
+			// }else{
+			// 	if(nDeg > pDeg && nDeg < pDeg + 180){
+			// 		this.player.rotDir = "right"
+			// 	}else{
+			// 		this.player.rotDir = "left"
+			// 	}
+			// }
+
+
+			// console.log(pDeg + ", " + nDeg)
+
+			if(pDeg == 90 
+				&& 
+				nDeg == 0 || nDeg == 315 || nDeg == 270 || nDeg == 45)
+			{
+				this.player.rotDir = "left"
+			}else{
+				this.player.rotDir = "right"
+			}
+
+
+			this.player.rotation.y = newRot
+    		this.player.newRot = newRot
+
+
     		//continue moving toward destination
     		this.playerFollow.position = this.playerFollow.position.add(moveInc)
     	}else{
@@ -410,14 +597,116 @@ class Game{
     	}
 
 
+    	if(Math.abs(this.player.rotation.y - this.player.newRot) > 0.01){
+
+    		
+
+    		// let leftDeg = (this.player.rotation.y - this.player.newRot) * (Math.PI / 180)
+    		// let rightDeg = (this.player.newRot - this.player.rotation.y) * (Math.PI / 180)
+
+    		
+
+    		let newRot = new BABYLON.Vector3(
+    			this.player.rotation.x,
+    			this.player.newRot,
+    			this.player.rotation.z
+    			)
+   //  		let leftRotSize = BABYLON.Vector3.Dot(this.player.rotation, newRot)
+			// let rightRotSize = BABYLON.Vector3.Dot(newRot, this.player.rotation)
+
+			
+
+    		let left = this.player.rotation.y - this.player.newRot
+    		let right = this.player.newRot - this.player.rotation.y
+
+    		if(left < right)
+	    		this.player.rotation.y -= left / 5
+	    	else
+	    		this.player.rotation.y += right / 5
 
 
-    	// this.player.position = new BABYLON.Vector3.Lerp(
-    	// 	this.player.position,
+
+
+    		// if(this.player.rotation.y - this.player.newRot < 0)
+	    	// 	this.player.rotation.y -= (this.player.rotation.y - this.player.newRot) / 5
+	    	// else
+	    	// 	this.player.rotation.y += (this.player.newRot - this.player.rotation.y) / 5
+	    
+	    	// let left = (this.player.rotation.y * (180 / Math.PI))
+	    	// + 360 - 
+
+			// let nn = (this.player.newRot /  Math.PI / 2) 
+			// 	- Math.floor(this.player.newRot /  Math.PI / 2)
+
+
+
+	  //   	if(pl + (1 - nn) < nn + (1 - pl)){
+	  //   		this.player.rotation.y -= (left) / 5
+	  //   	}else{
+	  //   		this.player.rotation.y += (right) / 5
+	  //   	}
+
+
+// 		  	let pDeg = this.player.rotation.y * (180 / Math.PI)
+
+// 			while(pDeg < 0)
+// 				pDeg += 360
+// 			while(pDeg > 360)
+// 				pDeg -= 360
+
+// 			let nDeg = this.player.newRot * (180 / Math.PI)
+
+// 			while(nDeg < 0)
+// 				nDeg += 360
+// 			while(nDeg > 360)
+// 				nDeg -= 360
+
+
+			// let left = this.player.rotation.y - this.player.newRot
+   //  		let right = this.player.newRot - this.player.rotation.y
+			
+// // console.log(pDeg + ", " + nDeg)
+// 			if(pDeg > 180){
+// 				if(nDeg < pDeg && nDeg > pDeg - 180){
+// 					this.player.rotation.y -= left / 5
+// 				}else{
+// 					this.player.rotation.y += right / 5
+// 				}
+// 			}else{
+// 				if(nDeg > pDeg && nDeg < pDeg + 180){console.log("right")
+// 					//right
+// 					this.player.rotation.y += (5 / 5) * (Math.PI / 180)
+// 				}else{console.log("left")
+// 					//left
+// 					this.player.rotation.y -= (5 / 5) *  (Math.PI / 180)
+// 				}
+// 			}
+// 			let left = this.player.rotation.y - this.player.newRot
+//     		let right = this.player.newRot - this.player.rotation.y
+
+// console.log(this.player.rotation.y *  (180 / Math.PI))
+
+// 			if(this.player.rotDir == "left"){
+// 				this.player.rotation.y -= 1 *  (Math.PI / 180)
+// 			}else if(this.player.rotDir == "right"){
+// 				this.player.rotation.y += 1 *  (Math.PI / 180)
+// 			}
+
+
+	    }
+
+			// let nn = (this.player.rotation.y  * (180 / Math.PI)) 
+			// - Math.floor(this.player.rotation.y * (180 / Math.PI))
+
+
+
+
+    	// this.player.rotation = new BABYLON.Vector3.Lerp(
+    	// 	this.player.rotation,
     	// 	new BABYLON.Vector3(
-    	// 		1,
-    	// 		this.player.position.y + 100,
-    	// 		1),
+    	// 		this.player.rotation.x,
+    	// 		90,
+    	// 		this.player.rotation.y),
     	// 	0.0001)
 
 
@@ -430,10 +719,10 @@ class Game{
 
 		if(this.camType == "FollowCamera"){
 			this.camera.radius = 200
-			this.camera.heightOffset = 100
-			this.camera.rotationOffset += 0.5
+			this.camera.heightOffset = 200
+			
 
-			this.camera.position.y = 100
+			// this.camera.position.y = 200
 			// this.camera.position.x = this.player.position.x - 100
 			// this.camera.position.z = this.player.position.z - 100
 		}

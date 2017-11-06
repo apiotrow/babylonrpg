@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		if(data.h == "path"){
-			gameInstance.changeDest(data.v[0], data.v[1])
+			gameInstance.prepareNextDest(data.v[0], data.v[1])
 		}
 
 		if(data.h == "nextInPath"){
