@@ -382,6 +382,100 @@ class Game{
     	return 225 * (Math.PI / 180)
     }
 
+    rotateByDeg(currDeg, changeDeg){
+    	return currDeg + (changeDeg * (Math.PI / 180))
+    }
+
+    changeRot(pDeg, nDeg, origRot){
+		//        0   1   2   3    4    5    6    7
+		let ca = [0, 45, 90, 135, 180, 225, 270, 315]
+
+		let begin = ca.indexOf(pDeg)
+		let end = ca.indexOf(nDeg)
+
+		let rightCount = 0
+		let iter = begin
+		let eightCount = 0
+
+		while(eightCount < 8){
+			if(nDeg == ca[iter])
+				break
+			else
+				rightCount++
+
+			if(iter == 7)
+				iter = 0
+			else
+				iter++
+
+			eightCount++
+		}
+
+		let leftCount = 0
+		iter = begin
+		eightCount = 0
+
+		while(eightCount < 8){
+			if(nDeg == ca[iter])
+				break
+			else
+				leftCount++
+
+			if(iter == 0)
+				iter = 7
+			else
+				iter--
+
+			eightCount++
+		}
+
+		// console.log("leftCount: " + leftCount + ", rightCount: " + rightCount)
+
+
+		// let angleChange = ((leftCount < rightCount) ? leftCount : rightCount)
+
+		
+
+		if(leftCount < rightCount){
+			console.log(leftCount * -45)
+			return this.rotateByDeg(origRot, leftCount * -45)
+		}else{
+			console.log(rightCount * 45)
+			return this.rotateByDeg(origRot, rightCount * 45)
+		}
+
+		
+		// return origRot + (angleChange * (Math.PI / 180))
+
+
+		// let angleChange
+		// if(Math.abs(end - begin) < 5)
+		// 	angleChange = (end - begin) * 45
+		// else
+		// 	angleChange = (ca.length - begin) + end
+
+		// return origRot + (angleChange * (Math.PI / 180))
+
+		// //180 left
+		// if(pDeg == initRot && nDeg == ca[ca.indexOf(initRot) - 1]){
+		// 	return this.rotateByDeg(this.player.newRot, -45)
+		// }else if(pDeg == 180 && nDeg == 90){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+		// }else if(pDeg == 180 && nDeg == 45){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+		// }else if(pDeg == 180 && nDeg == 0){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+		// }
+		// //180 right
+		// else if(pDeg == 180 && nDeg == 225){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+		// }else if(pDeg == 180 && nDeg == 270){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+		// }else if(pDeg == 180 && nDeg == 315){
+		// 	this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+		// }
+	}
+
 	update(){
 		this.scene.render()
 
@@ -406,11 +500,11 @@ class Game{
 
 		
 
-		let ninety = (this.negX() /  Math.PI / 2) 
-		- Math.floor(this.negX() /  Math.PI / 2)
+		// let ninety = (this.negX() /  Math.PI / 2) 
+		// - Math.floor(this.negX() /  Math.PI / 2)
 
-		let threefifteen = (this.negZposX() /  Math.PI / 2) 
-		- Math.floor(this.negZposX() /  Math.PI / 2)
+		// let threefifteen = (this.negZposX() /  Math.PI / 2) 
+		// - Math.floor(this.negZposX() /  Math.PI / 2)
 
 		// console.log(ninety + (1 - threefifteen))
 		// console.log(threefifteen + (1 - ninety))
@@ -540,35 +634,222 @@ class Game{
 			let left = this.player.newRot - newRot
     		let right = newRot - this.player.newRot
 			
-			// if(pDeg > 180){
-			// 	if(nDeg < pDeg && nDeg > pDeg - 180){
-			// 		this.player.rotDir = "left"
-			// 	}else{
-			// 		this.player.rotDir = "right"
-			// 	}
-			// }else{
-			// 	if(nDeg > pDeg && nDeg < pDeg + 180){
-			// 		this.player.rotDir = "right"
-			// 	}else{
-			// 		this.player.rotDir = "left"
-			// 	}
-			// }
-
-
-			// console.log(pDeg + ", " + nDeg)
-
-			if(pDeg == 90 
-				&& 
-				nDeg == 0 || nDeg == 315 || nDeg == 270 || nDeg == 45)
-			{
-				this.player.rotDir = "left"
+			if(pDeg > 180){
+				if(nDeg < pDeg && nDeg > pDeg - 180){
+					this.player.rotDir = "left"
+				}else{
+					this.player.rotDir = "right"
+				}
 			}else{
-				this.player.rotDir = "right"
+				if(nDeg > pDeg && nDeg < pDeg + 180){
+					this.player.rotDir = "right"
+				}else{
+					this.player.rotDir = "left"
+				}
+			}
+
+			pDeg = Math.floor(pDeg)
+			nDeg = Math.floor(nDeg)
+			console.log(pDeg + " , " + nDeg)
+
+			if(pDeg == 360)
+				pDeg = 0
+			if(nDeg == 360)
+				nDeg = 0
+
+			//90 left
+			if(pDeg == 90 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 90 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 90 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 90 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//90 right
+			else if(pDeg == 90 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 90 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 90 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//135 left
+			else if(pDeg == 135 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 135 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 135 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 135 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//135 right
+			else if(pDeg == 135 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 135 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 135 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//180 left
+			else if(pDeg == 180 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 180 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 180 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 180 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//180 right
+			else if(pDeg == 180 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 180 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 180 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//225 left
+			else if(pDeg == 225 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 225 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 225 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 225 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//225 right
+			else if(pDeg == 225 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 225 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 225 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//270 left
+			else if(pDeg == 270 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 270 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 270 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 270 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//270 right
+			else if(pDeg == 270 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 270 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 270 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//315 left
+			else if(pDeg == 315 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 315 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 315 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 315 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//315 right
+			else if(pDeg == 315 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 315 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 315 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//0 left
+			else if(pDeg == 0 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 0 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 0 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 0 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//0 right
+			else if(pDeg == 0 && nDeg == 45){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 0 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 0 && nDeg == 135){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
+			}
+			//45 left
+			else if(pDeg == 45 && nDeg == 0){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
+			}else if(pDeg == 45 && nDeg == 315){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
+			}else if(pDeg == 45 && nDeg == 270){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
+			}else if(pDeg == 45 && nDeg == 225){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
+			}
+			//45 right
+			else if(pDeg == 45 && nDeg == 90){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
+			}else if(pDeg == 45 && nDeg == 136){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
+			}else if(pDeg == 45 && nDeg == 180){
+				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
 			}
 
 
-			this.player.rotation.y = newRot
-    		this.player.newRot = newRot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			// this.player.newRot = this.changeRot(pDeg, nDeg, this.player.newRot)
+
+			
+
+
+
+
+			// console.log(this.player.newRot)
+
+			// if(pDeg == 90 
+			// 	&& 
+			// 	nDeg == 0 || nDeg == 315 || nDeg == 270 || nDeg == 45)
+			// {
+			// 	this.player.rotDir = "left"
+			// }else{
+			// 	this.player.rotDir = "right"
+			// }
+
+			
+			// this.player.rotate(BABYLON.Axis.Y, -Math.PI / 2, BABYLON.Space.WORLD)
+
+			let leftInterval = this.player.rotation.y - Math.PI
+			let rightInterval = this.player.rotation.y + Math.PI
+
+
+			// this.player.rotation.y = newRot
+    		// this.player.newRot = newRot
 
 
     		//continue moving toward destination
@@ -597,6 +878,8 @@ class Game{
     	}
 
 
+
+
     	if(Math.abs(this.player.rotation.y - this.player.newRot) > 0.01){
 
     		
@@ -606,13 +889,13 @@ class Game{
 
     		
 
-    		let newRot = new BABYLON.Vector3(
-    			this.player.rotation.x,
-    			this.player.newRot,
-    			this.player.rotation.z
-    			)
-   //  		let leftRotSize = BABYLON.Vector3.Dot(this.player.rotation, newRot)
-			// let rightRotSize = BABYLON.Vector3.Dot(newRot, this.player.rotation)
+    		// let newRot = new BABYLON.Vector3(
+    		// 	this.player.rotation.x,
+    		// 	this.player.newRot,
+    		// 	this.player.rotation.z
+    		// 	)
+
+
 
 			
 
@@ -624,6 +907,14 @@ class Game{
 	    	else
 	    		this.player.rotation.y += right / 5
 
+
+
+			// if(this.player.rotDir == "left"){
+			// 	this.player.rotation.y -= 1 *  (Math.PI / 180)
+
+			// }else if(this.player.rotDir == "right"){
+			// 	this.player.rotation.y += 1 *  (Math.PI / 180)
+			// }
 
 
 
@@ -686,11 +977,7 @@ class Game{
 
 // console.log(this.player.rotation.y *  (180 / Math.PI))
 
-// 			if(this.player.rotDir == "left"){
-// 				this.player.rotation.y -= 1 *  (Math.PI / 180)
-// 			}else if(this.player.rotDir == "right"){
-// 				this.player.rotation.y += 1 *  (Math.PI / 180)
-// 			}
+
 
 
 	    }
