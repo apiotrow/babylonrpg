@@ -51,7 +51,7 @@ let es = new easystarjs.js()
 es.setAcceptableTiles(1)
 es.enableDiagonals()
 es.disableCornerCutting()
-es.setIterationsPerCalculation(10) //set low to prevent framerate drops
+es.setIterationsPerCalculation(100) //set low to prevent framerate drops
 es.setGrid(aStarMap)
 
 let players = {}
