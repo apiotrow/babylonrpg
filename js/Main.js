@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			gameInstance.initGame(tasks, playerTileX, playerTileZ)
 	 	}
 	}
-
+let gg = 0
 	ws.onmessage = (event)=> {
 		let data = JSON.parse(event.data)
 
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		if(data.h == "path"){
-			gameInstance.prepareNextDest(data.v[0], data.v[1])
+			gameInstance.changeDest(data.v[0], data.v[1])
 		}
 
 		if(data.h == "nextInPath"){
