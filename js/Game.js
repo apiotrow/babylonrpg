@@ -2,12 +2,21 @@ var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 let gloss = require("../assets/gloss.json")
 var sizeof = require('sizeof')
+var work = require('webworkify')
 
 class Game{
 	constructor(engine, canvas, scene, appW, appH, ws){
+		this.instanceWorker = work(require('./InstanceWorker.js'))
+		this.instanceWorker.addEventListener('message', function (ev) {
+		    console.log(ev.data)
+		})
+
 		this.scene = scene
 		this.engine = engine
 		this.ws = ws
+		this.appW = appW
+		this.appH = appH
+		this.nextDest = null
 
 		this.ID
 
@@ -18,8 +27,7 @@ class Game{
 		this.radius = 10
 
 		this.newDestSelected = false
-		this.newDestSelectedX
-		this.newDestSelectedZ
+		this.selectedDest = [-1, -1]
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
@@ -36,15 +44,9 @@ class Game{
 			scene)
 
 		this.camera.minZ = -90
-
-		console.log(this.camera)
 		
-		let divisor = 4
-		this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-		this.camera.orthoTop = appH / divisor
-		this.camera.orthoBottom = -appH / divisor
-		this.camera.orthoLeft = -appW / divisor
-		this.camera.orthoRight = appW / divisor
+		this.orthoSize = 4
+		this.cameraOrtho(this.orthoSize)
 	
 		this.keyState = {}
 		var onKeyDown = (evt)=> {
@@ -53,14 +55,22 @@ class Game{
 	    var onKeyUp = (evt)=> {
 	    	this.keyState[evt.key] = false
 	    }
-	    window.addEventListener
+	    canvas.addEventListener
 		('click', (evt)=>{
 			this.keyState["click"] = true
 		})
-		window.addEventListener
+		canvas.addEventListener
 		('mouseup', (event)=>{
 			this.keyState["click"] = false
 		})
+		canvas.addEventListener('wheel', (e)=>{
+			if(e.deltaY < 0){
+				this.keyState['zoomIn'] = true
+			}
+			else if(e.deltaY > 0){
+				this.keyState['zoomOut'] = true
+			}
+		}, {passive: true})
 
 	    BABYLON.Tools.RegisterTopRootEvents([{
 	        name: "keydown",
@@ -78,24 +88,16 @@ class Game{
 		window.addEventListener("resize", function () {
 		    engine.resize()
 		})
-
-
 	}
 
-	// resolveAfter2Seconds(x) { 
-	//   return new Promise(resolve => {
-	//     setTimeout(() => {
-	//       resolve(x);
-	//     }, 2000);
-	//   });
-	// }
-
-	// async doEverything() {
- //    // const sumOfItAll = await http.scrapeTheInternet() +
- //    //   await new Promise((resolve, reject) =>
- //    //     http.asyncCallback((e, result) => !e ? resolve(result) : reject(e)))
- //    // return this.resp = sumOfItAll
- //  }
+	cameraOrtho(size){
+		let divisor = size
+		this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA
+		this.camera.orthoTop = this.appH / divisor
+		this.camera.orthoBottom = -this.appH / divisor
+		this.camera.orthoLeft = -this.appW / divisor
+		this.camera.orthoRight = this.appW / divisor
+	}
 
 	/**
 	 * Request a movement path to a particular destination
@@ -135,7 +137,7 @@ class Game{
      * toward it, then get next spot in path so player
      * can move to it immedately upon reaching destination.
      */ 
-    changeDest(x, z){
+    getNextInPath(x, z){
     	this.destWorldX = this.tileToWorld(x)
 		this.destWorldZ = this.tileToWorld(z)
 
@@ -185,9 +187,74 @@ class Game{
 		this.pool["blue"] = []
 		for(let i = 0; i < ((this.radius * 2) + 1) * ((this.radius * 2) + 1); i++){
 			let ni = this.meshes["blue"].createInstance()
-			// ni.setEnabled(false)
+			ni.setEnabled(false)
 			this.pool["blue"].push(ni)
 		}
+
+let hh = {hey: 3, sd: function(){console.log("ss")}}
+console.log(JSON.parse(JSON.stringify(hh)))
+
+
+		// This works on all devices/browsers, and uses IndexedDBShim as a final fallback 
+		var indexedDB = window.indexedDB 
+		|| window.mozIndexedDB 
+		|| window.webkitIndexedDB 
+		|| window.msIndexedDB 
+		|| window.shimIndexedDB
+
+		// Open (or create) the database
+		var open = indexedDB.open("GameDB", 2)
+
+		// Create the schema
+		open.onupgradeneeded = ()=> {
+		    var db = open.result
+
+		    for(let i in this.pool){
+		    	var store = db.createObjectStore("MeshInstancess", {keyPath: "MeshName"})
+		   		// var index = store.createIndex("MeshName", [])
+		    }
+		    
+		    console.log("upgraded")
+		}
+
+		open.onsuccess = ()=> {
+		    // Start a new transaction
+		    var db = open.result
+		    var tx = db.transaction("MeshInstancess", "readwrite")
+		    var store = tx.objectStore("MeshInstancess")
+		    // var index = store.index("MeshName")
+
+		    let count = 0
+		    for(let i in this.pool){
+		    	// store.put({MeshName:i , this.pool[i]})
+		    	// store.add({MeshName: i + ":" + (count++) , mesh: this.pool[i]})
+		    }
+		    store.put({MeshName: "sss" , mesh: {hsd: "Sss", ssd: 52}})
+		    store.add({MeshName: "sss" , mesh: hh})
+
+		    // Add some data
+		    // store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35})
+		    
+		    // Query the data
+		    var getJohn = store.get("sss");
+		    // var getBob = index.get(["Smith", "Bob"]);
+
+		    getJohn.onsuccess = function() {
+		        console.log(getJohn);  // => "John"
+		    };
+
+
+		    // // Close the db when the transaction is done
+		    // tx.oncomplete = function() {
+		    //     db.close();
+		    // };
+
+		    console.log(db)
+		}
+
+
+
+
 
 		//init player
 		this.player = this.meshes.chad
@@ -205,7 +272,7 @@ class Game{
 		this.camera.cameraAcceleration = 0.5
 
 		//start update loop
-		this.engine.runRenderLoop( ()=> {
+		this.engine.runRenderLoop(()=> {
 			this.update()
 		})
 
@@ -227,13 +294,23 @@ class Game{
 		}
 
 		// console.log(sizeof.sizeof(this) / 1000000)
+	
+
+		// setInterval(()=>{
+		   	
+		// 	}
+		// , 100)
+
 	}
 
-
-		/**
-	 * Render the tiles around the player by a certain radius
-	 */ 
 	renderChunk(chunk, r){
+		// this.renderChunkFromPool(chunk, r)
+		this.renderChunkFromNewInstances(chunk, r)
+		// this.renderChunkFromNewInstancesWebWorker(chunk, r)
+		// this.renderChunkFromNewInstancesPromises(chunk, r)
+	}
+
+	renderChunkFromNewInstancesPromises(chunk, r){
 		//if this.chunk hasn't been initialized (game just
     	//started), or if new chunk is a different dimension 
     	//than previous chunk, remake this.chunk 
@@ -251,6 +328,108 @@ class Game{
 			}
     	}
 
+    	// var disposePromises = []
+    	let count = 0
+
+		//dispose all meshes in old chunk
+		//and reset all entries
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
+				let ch = this.chunk
+				if(this.chunk[x][z] !== null){
+					// disposePromises.push(new Promise(function(resolve, reject) {
+
+						this.chunk[x][z].dispose()
+						this.chunk[x][z] = null
+						// resolve()
+					// }))
+					
+				}
+				this.chunk[x][z] = null
+			}
+		}
+
+		// Promise.all(disposePromises).then(function(){
+		// 	// console.log("disposing done")
+		// })
+
+		var instancePromises = []
+
+		count = 0
+		for(let x = 0; x < chunk.length; x++){
+			for(let z = 0; z < chunk[x].length; z++){
+
+				//if tile is off map it will be undefined
+				if(chunk[x] === null
+					|| chunk[x][z] === null)
+				{
+					continue
+				}
+
+				let _this = this
+				count++
+				// instancePromises.push(new Promise(function(resolve, reject) {
+					
+
+					// let wait = setTimeout(()=>{
+						//convert model ID to model name
+						let modelName = gloss.IDToModel[chunk[x][z]]
+
+						let newInstance = _this.meshes[modelName].createInstance()
+
+						newInstance.tileX = _this.player.tileX + (x - r)
+						newInstance.tileZ = _this.player.tileZ + (z - r)
+
+						newInstance.position.x = _this.tileToWorld(newInstance.tileX)
+						newInstance.position.z = _this.tileToWorld(newInstance.tileZ)
+						newInstance.position.y = 0
+
+						_this.chunk[x][z] = newInstance
+						
+					// 	resolve()
+					// }, count * 3)
+					
+				// }))
+
+				
+			}
+		}
+
+		Promise.all(instancePromises).then(function(){
+			console.log("instances done")
+		})
+	}
+
+
+	/**
+	 * Render the tiles around the player by a certain radius
+	 */ 
+	renderChunkFromPool(chunk, r){
+		//if this.chunk hasn't been initialized (game just
+    	//started), or if new chunk is a different dimension 
+    	//than previous chunk, remake this.chunk 
+    	if(
+    		this.chunk !== undefined
+    		&& this.chunk.length != (r * 2) + 1)
+    	{
+    		this.chunk = []
+    		for(let x = 0; x < (r * 2) + 1; x++){
+    			let col = []
+				for(let z = 0; z < (r * 2) + 1; z++){
+					col.push(null)
+				}
+				this.chunk.push(col)
+			}
+    	}
+
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
+				if(this.chunk[x][z] !== null){
+					this.chunk[x][z].setEnabled(false)
+				}
+			}
+		}
+
 		let poolIter = 0
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
@@ -265,10 +444,7 @@ class Game{
 				//convert model ID to model name
 				let modelName = gloss.IDToModel[chunk[x][z]]
 
-
 				let newInstance = this.pool["blue"][poolIter++]
-// if(newInstance !== undefined){
-				// newInstance.setEnabled(true)
 
 				newInstance.tileX = this.player.tileX + (x - r)
 				newInstance.tileZ = this.player.tileZ + (z - r)
@@ -278,73 +454,137 @@ class Game{
 				newInstance.position.y = 0
 
 				this.chunk[x][z] = newInstance
-			// }
-// this.chunk[x][z].setEnabled()
-
+				newInstance.setEnabled(true)
 			}
 		}
 	}
 
-// 	/**
-// 	 * Render the tiles around the player by a certain radius
-// 	 */ 
-// 	renderChunk(chunk, r){
-// 		//if this.chunk hasn't been initialized (game just
-//     	//started), or if new chunk is a different dimension 
-//     	//than previous chunk, remake this.chunk 
-//     	if(
-//     		this.chunk !== undefined
-//     		&& this.chunk.length != (r * 2) + 1)
-//     	{
-//     		this.chunk = []
-//     		for(let x = 0; x < (r * 2) + 1; x++){
-//     			let col = []
-// 				for(let z = 0; z < (r * 2) + 1; z++){
-// 					col.push(null)
-// 				}
-// 				this.chunk.push(col)
-// 			}
-//     	}
+	/**
+	 * Render the tiles around the player by a certain radius
+	 */ 
+	renderChunkFromNewInstancesWebWorker(chunk, r){
+		let mess = {
+			h: "instance",
+			v: {
+				chunk: chunk,
+				r: r
+			}
+		}
+		this.instanceWorker.postMessage(mess)
 
-// 		//dispose all meshes in old chunk
-// 		//and reset all entries
-// 		for(let x = 0; x < this.chunk.length; x++){
-// 			for(let z = 0; z < this.chunk[x].length; z++){
-// 				if(this.chunk[x][z] !== null){
-// 					this.chunk[x][z].dispose()
-// 				}
-// 				this.chunk[x][z] = null
-// 			}
-// 		}
+		//if this.chunk hasn't been initialized (game just
+    	//started), or if new chunk is a different dimension 
+    	//than previous chunk, remake this.chunk 
+    	if(
+    		this.chunk !== undefined
+    		&& this.chunk.length != (r * 2) + 1)
+    	{
+    		this.chunk = []
+    		for(let x = 0; x < (r * 2) + 1; x++){
+    			let col = []
+				for(let z = 0; z < (r * 2) + 1; z++){
+					col.push(null)
+				}
+				this.chunk.push(col)
+			}
+    	}
 
-// 		for(let x = 0; x < chunk.length; x++){
-// 			for(let z = 0; z < chunk[x].length; z++){
+		//dispose all meshes in old chunk
+		//and reset all entries
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
+				if(this.chunk[x][z] !== null){
+					this.chunk[x][z].dispose()
+				}
+				this.chunk[x][z] = null
+			}
+		}
 
-// 				//if tile is off map it will be undefined
-// 				if(chunk[x] === null
-// 					|| chunk[x][z] === null)
-// 				{
-// 					continue
-// 				}
+		for(let x = 0; x < chunk.length; x++){
+			for(let z = 0; z < chunk[x].length; z++){
 
-// 				//convert model ID to model name
-// 				let modelName = gloss.IDToModel[chunk[x][z]]
+				//if tile is off map it will be undefined
+				if(chunk[x] === null
+					|| chunk[x][z] === null)
+				{
+					continue
+				}
 
-// 				let newInstance = this.meshes[modelName].createInstance()
+				//convert model ID to model name
+				let modelName = gloss.IDToModel[chunk[x][z]]
 
-// 				newInstance.tileX = this.player.tileX + (x - r)
-// 				newInstance.tileZ = this.player.tileZ + (z - r)
+				let newInstance = this.meshes[modelName].createInstance()
 
-// 				newInstance.position.x = this.tileToWorld(newInstance.tileX)
-// 				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
-// 				newInstance.position.y = 0
+				newInstance.tileX = this.player.tileX + (x - r)
+				newInstance.tileZ = this.player.tileZ + (z - r)
 
-// 				this.chunk[x][z] = newInstance
-// // this.chunk[x][z].setEnabled()
+				newInstance.position.x = this.tileToWorld(newInstance.tileX)
+				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
+				newInstance.position.y = 0
 
-// 			}
-// 		}
-// 	}
+				this.chunk[x][z] = newInstance
+			}
+		}
+	}
+
+	/**
+	 * Render the tiles around the player by a certain radius
+	 */ 
+	renderChunkFromNewInstances(chunk, r){
+		//if this.chunk hasn't been initialized (game just
+    	//started), or if new chunk is a different dimension 
+    	//than previous chunk, remake this.chunk 
+    	if(
+    		this.chunk !== undefined
+    		&& this.chunk.length != (r * 2) + 1)
+    	{
+    		this.chunk = []
+    		for(let x = 0; x < (r * 2) + 1; x++){
+    			let col = []
+				for(let z = 0; z < (r * 2) + 1; z++){
+					col.push(null)
+				}
+				this.chunk.push(col)
+			}
+    	}
+
+		//dispose all meshes in old chunk
+		//and reset all entries
+		for(let x = 0; x < this.chunk.length; x++){
+			for(let z = 0; z < this.chunk[x].length; z++){
+				if(this.chunk[x][z] !== null){
+					this.chunk[x][z].dispose()
+				}
+				this.chunk[x][z] = null
+			}
+		}
+
+		for(let x = 0; x < chunk.length; x++){
+			for(let z = 0; z < chunk[x].length; z++){
+
+				//if tile is off map it will be undefined
+				if(chunk[x] === null
+					|| chunk[x][z] === null)
+				{
+					continue
+				}
+
+				//convert model ID to model name
+				let modelName = gloss.IDToModel[chunk[x][z]]
+
+				let newInstance = this.meshes[modelName].createInstance()
+
+				newInstance.tileX = this.player.tileX + (x - r)
+				newInstance.tileZ = this.player.tileZ + (z - r)
+
+				newInstance.position.x = this.tileToWorld(newInstance.tileX)
+				newInstance.position.z = this.tileToWorld(newInstance.tileZ)
+				newInstance.position.y = 0
+
+				this.chunk[x][z] = newInstance
+			}
+		}
+	}
 
 	/**
 	 * Filter for raycasting that makes it only hit ground
@@ -445,24 +685,20 @@ class Game{
 		        let tileXHit = this.worldToTile(mouseHit.x)
 		        let tileZHit = this.worldToTile(mouseHit.z)
 
-		        //if player wants to find a new path while character is currently
-		        //moving, cancel current path, wait until character gets to next
-		        //tile in path, then get new path. this will prevent calls to server
+		        //if player is currently moving along path and 
+				//player wants to find a new path, cancel current path, 
+				//wait until character gets to next tile in path,
+				//then get new path. this will prevent calls to server
 		        //happening too frequently.
-	        	if(Math.abs(this.destWorldX - this.playerFollow.position.x) 
-	        		> Math.abs(moveInc.x)
-		    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) 
-		    		> Math.abs(moveInc.z))
+	        	if(this.nextDest !== null)
 		    	{
 		    		//flag so we can get new path once we reach the next tile
 		    		this.newDestSelected = true
-		    		this.newDestSelectedX = tileXHit
-		    		this.newDestSelectedZ = tileZHit
+		    		this.selectedDest = [tileXHit, tileZHit]
 
 		    		//clear next destination if one exists so the player
 		    		//will stop moving on the next tile
 		    		this.nextDest = [-1, -1]
-		        	
 		        }else{
 		        	//request new path for chosen destination
 		    		this.requestPath(
@@ -675,7 +911,7 @@ class Game{
 			//45 right
 			else if(pDeg == 45 && nDeg == 90){
 				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 45 && nDeg == 136){
+			}else if(pDeg == 45 && nDeg == 135){
 				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
 			}else if(pDeg == 45 && nDeg == 180){
 				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
@@ -688,38 +924,40 @@ class Game{
     		this.player.tileX = this.worldToTile(this.destWorldX)
     		this.player.tileZ = this.worldToTile(this.destWorldZ)
 
-    		//get next spot in path if it exists.
-    		//else just sit there
-    		if(this.nextDest !== undefined
-    			&& this.nextDest[0] != -1
-    			&& this.nextDest[1] != -1)
-    		{
-    			//set new destination
-    			this.changeDest(this.nextDest[0], this.nextDest[1])
+    		//if we're currently moving
+    		if(this.nextDest !== null){
+    			//the next tile isn't the final spot
+    			if(this.nextDest[0] != -1 && this.nextDest[1] != -1){
+    				//set new destination
+	    			this.getNextInPath(this.nextDest[0], this.nextDest[1])
 
-    			//incremement movement for this frame to prevent
-    			//stop/go jerkiness
-    			this.playerFollow.position = this.playerFollow.position.add(moveInc)
+	    			//incremement movement for this frame to prevent
+	    			//stop/go jerkiness
+	    			this.playerFollow.position = this.playerFollow.position.add(moveInc)
 
-    			//request new chunk
-    			this.requestChunk(this.player.tileX, this.player.tileZ)
-    		}else{
+	    			//request new chunk
+	    			this.requestChunk(this.player.tileX, this.player.tileZ)
+    			//if next tile IS final spot
+    			}else if(this.nextDest[0] == -1 && this.nextDest[1] == -1){
+    				//nullify path
+    				this.nextDest = null
+
+	    			//request new chunk
+	    			this.requestChunk(this.player.tileX, this.player.tileZ)
+    			}
+
     			//if we selected a new destination mid-path, request
     			//path to that destination
     			if(this.newDestSelected){
 		    		this.requestPath(
 	    				this.player.tileX,
 	    				this.player.tileZ,
-	    				this.newDestSelectedX,
-	    				this.newDestSelectedZ
+	    				this.selectedDest[0],
+	    				this.selectedDest[1]
 	    				)
 
 		    		//unflag
 	    			this.newDestSelected = false
-
-	    			//request new chunk (rapid path changing can prevent
-	    			//chunk request above from being called)
-    				this.requestChunk(this.player.tileX, this.player.tileZ)
 	    		}
     		}
     	}
@@ -735,28 +973,21 @@ class Game{
 	    		this.player.rotation.y += right / 5
 	    }
 
-
-   //  	if(this.player !== undefined)
-			// this.camera.setTarget(this.playerFollow.position)
-
+	    //have ground object follow player
 		this.ground.position = this.playerFollow.position
 
-
+		//update camera height and radius from player
 		this.camera.radius = 200
 		this.camera.heightOffset = 200
-		
 
-		// this.camera.position.y = 200
-		// this.camera.position.x = this.player.position.x - 100
-		// this.camera.position.z = this.player.position.z - 100
-
-		// this.camera.rotation.y += 0.5
-		// this.camera.position.x = this.player.position.x - 100
-		
-		// this.camera.setPosition(new BABYLON.Vector3(
-		// 	this.camera.position.x, 
-		// 	100, 
-		// 	this.camera.position.z))
+		//camera zoom in/out functionality
+		if(this.keyState['zoomIn']){
+			this.cameraOrtho(++this.orthoSize)
+			this.keyState['zoomIn'] = false
+		}else if (this.keyState['zoomOut']){
+			this.cameraOrtho(--this.orthoSize)
+			this.keyState['zoomOut'] = false
+		}
 	}
 }
 

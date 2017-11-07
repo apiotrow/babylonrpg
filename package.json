@@ -16,6 +16,7 @@
     "jsonfile": "^4.0.0",
     "perlin-noise": "0.0.1",
     "sizeof": "^1.0.0",
+    "webworkify": "^1.4.0",
     "ws": "^3.2.0"
   },
   "optionalDependencies": {

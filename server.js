@@ -58,10 +58,6 @@ let players = {}
 
 
 wss.on('connection', function connection(ws, req){
-	//let client know we're ready
-	
-
-
 	ws.on('message', function incoming(message){
 		let data = JSON.parse(message)
 		let h = data.h
@@ -70,6 +66,7 @@ wss.on('connection', function connection(ws, req){
 			players[data.v] = {}
 		}
 
+		//player request chunk of map around him
 		if(h == "chunk"){
 			let tileX = data.v.cent[0]
 			let tileZ = data.v.cent[1]
@@ -79,10 +76,8 @@ wss.on('connection', function connection(ws, req){
 			let chunk = []
 
 			for(let x = tileX - r; x < tileX + r + 1; x++){
-
 				let col = []
 				for(let z = tileZ - r; z < tileZ + r + 1; z++){
-
 					//if tile is off map it will be undefined
 					if(map[x] === undefined
 						|| map[x][z] === undefined)
@@ -90,7 +85,6 @@ wss.on('connection', function connection(ws, req){
 						col.push(null)
 						continue
 					}
-
 					col.push(gloss.modelToID[map[x][z].name])
 				}
 				chunk.push(col)
@@ -107,6 +101,7 @@ wss.on('connection', function connection(ws, req){
 			sendMessage(ws, JSON.stringify(chunkSend))
 		}
 
+		//player request next spot in path
 		if(h == "nextInPath"){
 			players["pathIter"]++
 
@@ -177,88 +172,19 @@ wss.on('connection', function connection(ws, req){
 			})
 
 			es.calculate()
-
-
-
-
-
-
-
-
-
-
-
-
-			// let playerX = data.v.px
-			// let playerZ = data.v.pz
-
-			// let destX = data.v.dx
-			// let destZ = data.v.dz
-
-			// let r = data.v.r
-
-			// console.log("request to move to " + destX + "," + destZ)
-
-			// let chunk = []
-			// for(let x = playerX - r; x < playerX + r + 1; x++){
-			// 	let col = []
-			// 	for(let z = playerZ - r; z < playerZ + r + 1; z++){
-
-			// 		//if tile is off map it will be undefined
-			// 		if(map[x] === undefined
-			// 			|| map[x][z] === undefined)
-			// 		{
-			// 			col.push(0)
-			// 			continue
-			// 		}
-
-			// 		if(map[x][z].walkable == 1)
-			// 			col.push(1)
-			// 		else
-			// 			col.push(0)
-			// 	}
-			// 	chunk.push(col)
-			// }
-
-			// let chunkDestX = destX - (playerX - r)
-			// let chunkDestZ = destZ - (playerZ - r)
-
-			// console.log(chunk)
-			// console.log(
-			// 	r + ", " + r + " -> " +
-			// 	chunkDestX + ", " + chunkDestZ)
-
-			// es.setGrid(chunk)
-
-			// es.findPath(r, r, chunkDestX, chunkDestZ, (path)=>{
-			// 	if(path == null){
-			// 		return
-			// 	}
-
-			// 	console.log(path)
-			// 	let pathArr = []
-			// 	for(let i = 0; i < path.length; i++){
-			// 		pathArr.push(path[i].x + (playerX - r))
-			// 		pathArr.push(path[i].y + (playerZ - r))
-			// 	}
-
-			// 	console.log(pathArr)
-
-			// 	let pathSend = {
-			// 		h: "path",
-			// 		v: pathArr
-			// 	}
-			// 	sendMessage(ws, JSON.stringify(pathSend))
-			// })
-
-			// es.calculate()
 		}
 	})
 })
 
 function sendMessage(reciever, whatToSend){
 	if(reciever.readyState === reciever.OPEN){
-		reciever.send(whatToSend)
+
+		//simulate latency
+		setTimeout(()=>{
+			reciever.send(whatToSend)
+		}, 100)
+
+		// reciever.send(whatToSend)
 	}
 }
 
