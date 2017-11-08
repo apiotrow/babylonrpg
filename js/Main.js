@@ -8,6 +8,8 @@ var isNode = new Function("try {return this===global;}catch(e){return false;}")
 if(isNode())
 	server = require('../server.js')
 
+var sizeof = require('sizeof')
+
 //glossary
 let gloss = require("../assets/gloss.json")
 
@@ -57,8 +59,26 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	ws.onmessage = (event)=> {
-		let data = JSON.parse(event.data)
+		if(event.data instanceof Blob){
+			//reader for converting from binary to JSON
+			const reader = new FileReader()
 
+			//if server sent binary, convert to JSON
+			reader.addEventListener('loadend', (e) => {
+			  	let data = JSON.parse(e.srcElement.result)
+			  	messageAction(data)
+			})
+
+			reader.readAsText(event.data)
+		}
+		else if(typeof event.data === 'string' || event.data instanceof String){
+			let data = JSON.parse(event.data)
+			messageAction(data)
+		}
+	}
+
+	//what to do with message from server
+	function messageAction(data){
 		if(data.h == "chunk"){
 			gameInstance.renderChunk(data.v.chunk, data.v.r)
 		}

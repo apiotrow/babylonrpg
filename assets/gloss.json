@@ -1,32 +1,38 @@
 {
     "models": {
+        "blue": {
+            "path": "./assets/models/building/blue.babylon",
+            "ID": 0
+        },
         "roof1": {
             "path": "./assets/models/building/roof1.babylon",
-            "ID": 0
+            "ID": 1
         },
         "wall1": {
             "path": "./assets/models/building/wall1.babylon",
-            "ID": 1
-        },
-        "blue": {
-            "path": "./assets/models/building/blue.babylon",
             "ID": 2
+        },
+        "chair1": {
+            "path": "./assets/models/building/chair1.babylon",
+            "ID": 3
         },
         "chad": {
             "path": "./assets/models/char/chad.babylon",
-            "ID": 3
+            "ID": 4
         }
     },
     "modelToID": {
-        "roof1": 0,
-        "wall1": 1,
-        "blue": 2,
-        "chad": 3
+        "blue": 0,
+        "roof1": 1,
+        "wall1": 2,
+        "chair1": 3,
+        "chad": 4
     },
     "IDToModel": {
-        "0": "roof1",
-        "1": "wall1",
-        "2": "blue",
-        "3": "chad"
+        "0": "blue",
+        "1": "roof1",
+        "2": "wall1",
+        "3": "chair1",
+        "4": "chad"
     }
 }

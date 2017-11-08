@@ -6,16 +6,20 @@ var work = require('webworkify')
 
 class Game{
 	constructor(engine, canvas, scene, appW, appH, ws){
-		this.instanceWorker = work(require('./InstanceWorker.js'))
-		this.instanceWorker.addEventListener('message', function (ev) {
-		    console.log(ev.data)
-		})
+		// this.instanceWorker = work(require('./InstanceWorker.js'))
+		// this.instanceWorker.addEventListener('message', function (ev) {
+		//     console.log(ev.data)
+		// })
 
 		this.scene = scene
 		this.engine = engine
 		this.ws = ws
 		this.appW = appW
 		this.appH = appH
+
+		//if null, we're on final tile in path.
+		//if -1, -1, we're on second-to-last tile in path.
+		//if anything else, we're on another spot in path.
 		this.nextDest = null
 
 		this.ID
@@ -36,12 +40,14 @@ class Game{
 
 		this.playerFollow = new BABYLON.Mesh()
 
-		scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
+		this.scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		
 		this.camera = new BABYLON.FollowCamera(
 			"FollowCam", 
 			new BABYLON.Vector3(0, 10, -10), 
 			scene)
+		this.camera.rotationOffset = 225
+		this.camera.heightOffset = 200
 
 		this.camera.minZ = -90
 		
@@ -118,6 +124,22 @@ class Game{
 		this.ws.send(JSON.stringify(mess))
 	}
 
+    /**
+     * Change destination so player will begin moving
+     * toward it, then get next spot in path so player
+     * can move to it immedately upon reaching destination.
+     */ 
+    getNextInPath(x, z){
+    	this.destWorld[0] = this.tileToWorld(x)
+		this.destWorld[1] = this.tileToWorld(z)
+
+		let mess = {
+			h: "nextInPath",
+			v: this.ID
+		}
+		this.ws.send(JSON.stringify(mess))
+    }
+
 	/**
 	 * Request a chunk from the server
 	 */ 
@@ -133,23 +155,8 @@ class Game{
 	}
 
     /**
-     * Change destination so player will begin moving
-     * toward it, then get next spot in path so player
-     * can move to it immedately upon reaching destination.
-     */ 
-    getNextInPath(x, z){
-    	this.destWorldX = this.tileToWorld(x)
-		this.destWorldZ = this.tileToWorld(z)
-
-		let mess = {
-			h: "nextInPath",
-			v: this.ID
-		}
-		this.ws.send(JSON.stringify(mess))
-    }
-
-    /**
-     * Get the next destination in path ready
+     * Get the next destination in path ready.
+     * Results from getNextInPath() call
      */ 
     prepareNextDest(x, z){
     	this.nextDest = [x, z]
@@ -184,73 +191,73 @@ class Game{
 			this.meshes[meshName] = mesh
 		}
 
-		this.pool["blue"] = []
-		for(let i = 0; i < ((this.radius * 2) + 1) * ((this.radius * 2) + 1); i++){
-			let ni = this.meshes["blue"].createInstance()
-			ni.setEnabled(false)
-			this.pool["blue"].push(ni)
-		}
+// 		this.pool["blue"] = []
+// 		for(let i = 0; i < ((this.radius * 2) + 1) * ((this.radius * 2) + 1); i++){
+// 			let ni = this.meshes["blue"].createInstance()
+// 			ni.setEnabled(false)
+// 			this.pool["blue"].push(ni)
+// 		}
 
-let hh = {hey: 3, sd: function(){console.log("ss")}}
-console.log(JSON.parse(JSON.stringify(hh)))
+// let hh = {hey: 3, sd: function(){console.log("ss")}}
+// console.log(JSON.parse(JSON.stringify(hh)))
 
 
-		// This works on all devices/browsers, and uses IndexedDBShim as a final fallback 
-		var indexedDB = window.indexedDB 
-		|| window.mozIndexedDB 
-		|| window.webkitIndexedDB 
-		|| window.msIndexedDB 
-		|| window.shimIndexedDB
+// 		// This works on all devices/browsers, and uses IndexedDBShim as a final fallback 
+// 		var indexedDB = window.indexedDB 
+// 		|| window.mozIndexedDB 
+// 		|| window.webkitIndexedDB 
+// 		|| window.msIndexedDB 
+// 		|| window.shimIndexedDB
 
-		// Open (or create) the database
-		var open = indexedDB.open("GameDB", 2)
+// 		// Open (or create) the database
+// 		var open = indexedDB.open("GameDB", 2)
 
-		// Create the schema
-		open.onupgradeneeded = ()=> {
-		    var db = open.result
+// 		// Create the schema
+// 		open.onupgradeneeded = ()=> {
+// 		    var db = open.result
 
-		    for(let i in this.pool){
-		    	var store = db.createObjectStore("MeshInstancess", {keyPath: "MeshName"})
-		   		// var index = store.createIndex("MeshName", [])
-		    }
+// 		    for(let i in this.pool){
+// 		    	var store = db.createObjectStore("MeshInstancess", {keyPath: "MeshName"})
+// 		   		// var index = store.createIndex("MeshName", [])
+// 		    }
 		    
-		    console.log("upgraded")
-		}
+// 		    console.log("upgraded")
+// 		}
 
-		open.onsuccess = ()=> {
-		    // Start a new transaction
-		    var db = open.result
-		    var tx = db.transaction("MeshInstancess", "readwrite")
-		    var store = tx.objectStore("MeshInstancess")
-		    // var index = store.index("MeshName")
+// 		open.onsuccess = ()=> {
+// 		    // Start a new transaction
+// 		    var db = open.result
+// 		    var tx = db.transaction("MeshInstancess", "readwrite")
+// 		    var store = tx.objectStore("MeshInstancess")
+// 		    // var index = store.index("MeshName")
 
-		    let count = 0
-		    for(let i in this.pool){
-		    	// store.put({MeshName:i , this.pool[i]})
-		    	// store.add({MeshName: i + ":" + (count++) , mesh: this.pool[i]})
-		    }
-		    store.put({MeshName: "sss" , mesh: {hsd: "Sss", ssd: 52}})
-		    store.add({MeshName: "sss" , mesh: hh})
+// 		    let count = 0
+// 		    for(let i in this.pool){
+// 		    	// store.put({MeshName:i , this.pool[i]})
+// 		    	// store.add({MeshName: i + ":" + (count++) , mesh: this.pool[i]})
+// 		    }
+// 		    store.put({MeshName: "sss" , mesh: {hsd: "Sss", ssd: 52}})
+// 		    store.add({MeshName: "sss" , mesh: hh})
 
-		    // Add some data
-		    // store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35})
+// 		    // Add some data
+// 		    // store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35})
 		    
-		    // Query the data
-		    var getJohn = store.get("sss");
-		    // var getBob = index.get(["Smith", "Bob"]);
+// 		    // Query the data
+// 		    var getJohn = store.get("sss");
+// 		    // var getBob = index.get(["Smith", "Bob"]);
 
-		    getJohn.onsuccess = function() {
-		        console.log(getJohn);  // => "John"
-		    };
+// 		    getJohn.onsuccess = function() {
+// 		        console.log(getJohn);  // => "John"
+// 		    };
 
 
-		    // // Close the db when the transaction is done
-		    // tx.oncomplete = function() {
-		    //     db.close();
-		    // };
+// 		    // // Close the db when the transaction is done
+// 		    // tx.oncomplete = function() {
+// 		    //     db.close();
+// 		    // };
 
-		    console.log(db)
-		}
+// 		    console.log(db)
+// 		}
 
 
 
@@ -276,9 +283,14 @@ console.log(JSON.parse(JSON.stringify(hh)))
 			this.update()
 		})
 
+		  		this.destWorld = []
 		//init player destination to their current position
-		this.destWorldX = this.playerFollow.position.x
-    	this.destWorldZ = this.playerFollow.position.z
+		this.destWorld[0] = this.playerFollow.position.x
+    	this.destWorld[1] = this.playerFollow.position.z
+
+
+    	// this.destWorld[0] = this.tileToWorld(this.player.tileX)
+    	// this.destWorld[1] = this.tileToWorld(this.player.tileZ)
 
     	//render first chunk around player
     	this.requestChunk(this.player.tileX, this.player.tileZ)
@@ -653,7 +665,7 @@ console.log(JSON.parse(JSON.stringify(hh)))
 		this.scene.render()
 
 		if(this.keyState['w'] == true){
-			this.player.rotation.y -= 0.1
+			this.camera.heightOffset -= 2
 		}
 		if(this.keyState['d'] == true){
 			this.camera.rotationOffset -= 0.5
@@ -662,15 +674,8 @@ console.log(JSON.parse(JSON.stringify(hh)))
 			this.camera.rotationOffset += 0.5
 		}
 		if(this.keyState['s'] == true){
-			this.player.rotation.y += 0.1
+			this.camera.heightOffset += 2
 		}
-
-		//increment of movement per frame
-    	let moveInc = new BABYLON.Vector3(
-    		this.destWorldX - this.playerFollow.position.x,
-    		0,
-    		this.destWorldZ - this.playerFollow.position.z)
-    	.normalize().scale(1)
 
 		if(this.keyState["click"]){
 	        var hits = this.scene.multiPick(
@@ -712,41 +717,48 @@ console.log(JSON.parse(JSON.stringify(hh)))
 		    this.keyState["click"] = false
 		}
 
+		//increment of movement per frame
+    	let moveInc = new BABYLON.Vector3(
+    		this.destWorld[0] - this.playerFollow.position.x,
+    		0,
+    		this.destWorld[1] - this.playerFollow.position.z)
+    	.normalize().scale(1)
+
     	//if player hasn't reached next spot, move them
-    	if(Math.abs(this.destWorldX - this.playerFollow.position.x) 
+    	if(Math.abs(this.destWorld[0] - this.playerFollow.position.x) 
     		> Math.abs(moveInc.x)
-    		|| Math.abs(this.destWorldZ - this.playerFollow.position.z) 
+    		|| Math.abs(this.destWorld[1] - this.playerFollow.position.z) 
     		> Math.abs(moveInc.z))
     	{
     		let newRot
 
-    		if(this.player.tileX > this.worldToTile(this.destWorldX)
+    		if(this.player.tileX > this.worldToTile(this.destWorld[0])
     			&&
-    			this.player.tileZ > this.worldToTile(this.destWorldZ))
+    			this.player.tileZ > this.worldToTile(this.destWorld[1]))
     		{
     			newRot = this.negZnegX()
-    		}else if(this.player.tileX > this.worldToTile(this.destWorldX)
+    		}else if(this.player.tileX > this.worldToTile(this.destWorld[0])
     			&&
-    			this.player.tileZ < this.worldToTile(this.destWorldZ))
+    			this.player.tileZ < this.worldToTile(this.destWorld[1]))
     		{
     			newRot = this.posZnegX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)
+    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])
     			&&
-    			this.player.tileZ > this.worldToTile(this.destWorldZ))
+    			this.player.tileZ > this.worldToTile(this.destWorld[1]))
     		{
     			newRot = this.negZposX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)
+    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])
     			&&
-    			this.player.tileZ < this.worldToTile(this.destWorldZ))
+    			this.player.tileZ < this.worldToTile(this.destWorld[1]))
     		{
     			newRot = this.posZposX()
-    		}else if(this.player.tileX > this.worldToTile(this.destWorldX)){
+    		}else if(this.player.tileX > this.worldToTile(this.destWorld[0])){
     			newRot = this.negX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorldX)){
+    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])){
     			newRot = this.posX()
-    		}else if(this.player.tileZ < this.worldToTile(this.destWorldZ)){
+    		}else if(this.player.tileZ < this.worldToTile(this.destWorld[1])){
     			newRot = this.posZ()
-    		}else if(this.player.tileZ > this.worldToTile(this.destWorldZ)){
+    		}else if(this.player.tileZ > this.worldToTile(this.destWorld[1])){
     			newRot = this.negZ()
     		}
 
@@ -920,9 +932,9 @@ console.log(JSON.parse(JSON.stringify(hh)))
     		//continue moving toward destination
     		this.playerFollow.position = this.playerFollow.position.add(moveInc)
     	}else{
-    		//player arrived at next spot. change their tile coords.
-    		this.player.tileX = this.worldToTile(this.destWorldX)
-    		this.player.tileZ = this.worldToTile(this.destWorldZ)
+    		// //player arrived at next spot. change their tile coords.
+    		this.player.tileX = this.worldToTile(this.destWorld[0])
+    		this.player.tileZ = this.worldToTile(this.destWorld[1])
 
     		//if we're currently moving
     		if(this.nextDest !== null){
@@ -962,6 +974,14 @@ console.log(JSON.parse(JSON.stringify(hh)))
     		}
     	}
 
+
+    		let x = 15 - (this.player.tileX - this.radius)
+    		let z = 15 - (this.player.tileZ - this.radius)
+    		if(this.chunk[x] !== undefined
+    			&& this.chunk[x][z] !== undefined
+    			&& this.chunk[x][z] !== null)
+    		this.chunk[x][z].position.y = 10
+
     	//lerptate the player
     	if(Math.abs(this.player.rotation.y - this.player.newRot) > 0.01){
     		let left = this.player.rotation.y - this.player.newRot
@@ -978,7 +998,6 @@ console.log(JSON.parse(JSON.stringify(hh)))
 
 		//update camera height and radius from player
 		this.camera.radius = 200
-		this.camera.heightOffset = 200
 
 		//camera zoom in/out functionality
 		if(this.keyState['zoomIn']){

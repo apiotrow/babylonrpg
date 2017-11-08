@@ -6,6 +6,7 @@ const path = require('path')
 const cors = require('cors')
 let jsonfile = require('jsonfile')
 let easystarjs = require('easystarjs')
+var sizeof = require('sizeof')
 
 let gloss = require("./assets/gloss.json")
 
@@ -34,7 +35,10 @@ for(let x = 0; x < d; x++){
 	let aStarMapCol = []
 	for(let z = 0; z < d; z++){
 		let tile = {}
-		tile.name = "blue"
+		if(Math.random() < 0.5)
+			tile.name = "blue"
+		else
+			tile.name = "chair1"
 		tile.walkable = 1
 		col.push(tile)
 
@@ -56,6 +60,8 @@ es.setGrid(aStarMap)
 
 let players = {}
 
+//for accumulating number of bytes sent
+let mb = 0
 
 wss.on('connection', function connection(ws, req){
 	ws.on('message', function incoming(message){
@@ -176,15 +182,92 @@ wss.on('connection', function connection(ws, req){
 	})
 })
 
+/**
+ * Convert a string to ArrayBuffer to reduce size
+ * before sending to client.
+ */ 
+function stringToArrayBuffer(string) {
+  const arrayBuffer = new ArrayBuffer(string.length);
+  const arrayBufferView = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < string.length; i++) {
+    arrayBufferView[i] = string.charCodeAt(i);
+  }
+  return arrayBuffer;
+}
+
+/**
+ * Add bytes from sent string
+ */ 
+function addBytesString(send){
+	mb += sizeof.sizeof(send) / 1000000
+	console.log(mb)	
+}
+
+/**
+ * Add bytes from sent ArrayBuffer
+ */ 
+function addBytesBinary(send){
+	mb += send.byteLength / 1000000
+	console.log(mb)	
+}
+
+//send messages to client as binary rather than string
+let usingBinary = true
+
+//add latency to communication
+let simulatingLatency = true
+let latencyMS = 40
+
+/**
+ * 
+ */ 
 function sendMessage(reciever, whatToSend){
-	if(reciever.readyState === reciever.OPEN){
+	//if sending messages as binary
+	if(usingBinary){
+		//convert string to arraybuffer
+		let send = stringToArrayBuffer(whatToSend)
 
-		//simulate latency
-		setTimeout(()=>{
-			reciever.send(whatToSend)
-		}, 100)
+		//output 
+		console.log("message size reduction: " 
+			+ sizeof.sizeof(whatToSend) 
+			+ " => " 
+			+ send.byteLength)
 
-		// reciever.send(whatToSend)
+		//accumulate bytes
+		addBytesBinary(send)
+
+		//send message
+		if(reciever.readyState === reciever.OPEN){
+			if(simulatingLatency){
+				//send blob with latency
+				setTimeout(()=>{
+					reciever.send(send)
+				}, latencyMS)
+			}else{
+				//send blob with no latency
+				reciever.send(send)
+			}
+		}
+	//if sending messages as strings
+	}else{
+		//keep message as string
+		let send = whatToSend
+
+		//accumulate bytes
+		addBytesString(send)
+
+		//send message
+		if(reciever.readyState === reciever.OPEN){
+			if(simulatingLatency){
+				//send string with latency
+				setTimeout(()=>{
+					reciever.send(send)
+				}, latencyMS)
+			}else{
+				//send string with no latency
+				reciever.send(send)
+			}
+		}
 	}
 }
 
