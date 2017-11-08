@@ -12,11 +12,6 @@ class Game{
 		this.appW = appW
 		this.appH = appH
 
-		//if null, we're on final tile in path.
-		//if -1, -1, we're on second-to-last tile in path.
-		//if anything else, we're on another spot in path.
-		this.nextDest = null
-
 		this.ID
 
 		this.chunk = []
@@ -24,9 +19,6 @@ class Game{
 
 		this.spacing = 15
 		this.radius = 10
-
-		this.newDestSelected = false
-		this.selectedDest = [-1, -1]
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
@@ -91,6 +83,83 @@ class Game{
 		})
 	}
 
+	initGame(tasks, playerTileX, playerTileZ){
+		//make non-specular material to prevent shine
+		var mat = new BABYLON.StandardMaterial("mat", this.scene)
+		mat.specularColor = BABYLON.Color3.Black()
+
+		this.pool = {}
+
+		//setup meshes
+		for(let i = 0; i < tasks.length; i++){
+			let meshName = tasks[i].name
+			let mesh = tasks[i].loadedMeshes[0]
+
+			mesh.material = mat
+
+			//make shading more angular
+			mesh.convertToFlatShadedMesh()
+
+			//this doesn't seem to change anything
+			mesh.useVertexColors = true
+			
+			//give meshes an outline
+			mesh.outlineWidth = 0.15
+			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
+			mesh.renderOutline = true
+
+			//add mesh to mesh holder
+			this.meshes[meshName] = mesh
+		}
+
+		//init player
+		this.player = this.meshes.chad
+		this.player.tileX = playerTileX
+		this.player.tileZ = playerTileZ
+		this.playerFollow.position.x = this.tileToWorld(this.player.tileX)
+		this.playerFollow.position.z = this.tileToWorld(this.player.tileZ)
+		this.player.newAngle = 90 * (Math.PI / 180)
+
+		//if null, we're on final tile in path.
+		//if -1, -1, we're on second-to-last tile in path.
+		//if anything else, we're on another spot in path.
+		this.player.nextDest = null
+
+		// this.player.position.x = this.tileToWorld(this.player.tileX)
+		// this.player.position.z = this.tileToWorld(this.player.tileZ)
+		this.player.parent = this.playerFollow
+
+		this.camera.lockedTarget = this.playerFollow
+		this.camera.cameraAcceleration = 0.5
+
+		//start update loop
+		this.engine.runRenderLoop(()=> {
+			this.update()
+		})
+
+		//init player destination to their current position
+    	this.player.destWorld = []
+    	this.player.destWorld[0] = this.tileToWorld(this.player.tileX)
+    	this.player.destWorld[1] = this.tileToWorld(this.player.tileZ)
+
+		this.player.newDestSelected = false
+		this.player.selectedDest = [-1, -1]
+
+    	//render first chunk around player
+    	this.requestChunk(this.player.tileX, this.player.tileZ)
+
+    	this.chunk = []
+
+		// for(let x = 0; x < (this.radius * 2) + 1; x++){
+		// 	let col = []
+		// 	for(let z = 0; z < (this.radius * 2) + 1; z++){
+		// 		let newInstance = this.meshes["blue"].createInstance()
+		// 		col.push(newInstance)
+		// 	}
+		// 	this.chunk.push(col)
+		// }
+	}
+
 	cameraOrtho(size){
 		let divisor = size
 		this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA
@@ -128,8 +197,8 @@ class Game{
      * can move to it immedately upon reaching destination.
      */ 
     getNextInPath(x, z){
-    	this.destWorld[0] = this.tileToWorld(x)
-		this.destWorld[1] = this.tileToWorld(z)
+    	this.player.destWorld[0] = this.tileToWorld(x)
+		this.player.destWorld[1] = this.tileToWorld(z)
 
 		let mess = {
 			h: "nextInPath",
@@ -157,76 +226,8 @@ class Game{
      * Results from getNextInPath() call
      */ 
     prepareNextDest(x, z){
-    	this.nextDest = [x, z]
+    	this.player.nextDest = [x, z]
     }
-
-	initGame(tasks, playerTileX, playerTileZ){
-		//make non-specular material to prevent shine
-		var mat = new BABYLON.StandardMaterial("mat", this.scene)
-		mat.specularColor = BABYLON.Color3.Black()
-
-		this.pool = {}
-
-		//setup meshes
-		for(let i = 0; i < tasks.length; i++){
-			let meshName = tasks[i].name
-			let mesh = tasks[i].loadedMeshes[0]
-
-			mesh.material = mat
-
-			//make shading more angular
-			mesh.convertToFlatShadedMesh()
-
-			//this doesn't seem to change anything
-			mesh.useVertexColors = true
-			
-			//give meshes an outline
-			mesh.outlineWidth = 0.15
-			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-			mesh.renderOutline = true
-
-			//add mesh to mesh holder
-			this.meshes[meshName] = mesh
-		}
-
-		//init player
-		this.player = this.meshes.chad
-		this.player.tileX = playerTileX
-		this.player.tileZ = playerTileZ
-		this.playerFollow.position.x = this.tileToWorld(this.player.tileX)
-		this.playerFollow.position.z = this.tileToWorld(this.player.tileZ)
-		this.player.newRot = 90 * (Math.PI / 180)
-
-		// this.player.position.x = this.tileToWorld(this.player.tileX)
-		// this.player.position.z = this.tileToWorld(this.player.tileZ)
-		this.player.parent = this.playerFollow
-
-		this.camera.lockedTarget = this.playerFollow
-		this.camera.cameraAcceleration = 0.5
-
-		//start update loop
-		this.engine.runRenderLoop(()=> {
-			this.update()
-		})
-
-		//init player destination to their current position
-    	this.destWorld = []
-    	this.destWorld[0] = this.tileToWorld(this.player.tileX)
-    	this.destWorld[1] = this.tileToWorld(this.player.tileZ)
-
-    	//render first chunk around player
-    	this.requestChunk(this.player.tileX, this.player.tileZ)
-
-    	this.chunk = []
-		// for(let x = 0; x < (this.radius * 2) + 1; x++){
-		// 	let col = []
-		// 	for(let z = 0; z < (this.radius * 2) + 1; z++){
-		// 		let newInstance = this.meshes["blue"].createInstance()
-		// 		col.push(newInstance)
-		// 	}
-		// 	this.chunk.push(col)
-		// }
-	}
 
 	renderChunk(chunk, r){
 		// this.renderChunkFromPool(chunk, r)
@@ -568,14 +569,398 @@ class Game{
     }
 
     /**
-     * Rotate degree @currDeg by a certain amount @changeDeg
+     * Rotate angle @currDeg by a certain amount @changeDeg
      */ 
     rotateByDeg(currDeg, changeDeg){
     	return currDeg + (changeDeg * (Math.PI / 180))
     }
 
+    rayCastToGround(){
+    	return this.scene.multiPick(
+        	this.scene.pointerX, 
+        	this.scene.pointerY,
+        	this.groundPredicate,
+        	this.camera)
+    }
+
+    /**
+     * Return the mesh of the tile over worldX, worldY
+     */ 
+    selectedTile(worldX, worldY){
+    	let tileXHit = this.worldToTile(worldX)
+        let tileZHit = this.worldToTile(worldY)
+
+        let x = tileXHit - (this.player.tileX - this.radius)
+		let z = tileZHit - (this.player.tileZ - this.radius)
+		if(this.chunk[x] !== undefined
+			&& this.chunk[x][z] !== undefined
+			&& this.chunk[x][z] !== null)
+		{
+			return this.chunk[x][z]
+		}else{
+			return undefined
+		}
+    }
+
+    /**
+     * Initiate the setting of a new path to worldX, worldY
+     */ 
+    selectNewPath(worldX, worldY){
+    	let tileXHit = this.worldToTile(worldX)
+        let tileZHit = this.worldToTile(worldY)
+
+    	//if player is currently moving along path and 
+		//player wants to find a new path, cancel current path, 
+		//wait until character gets to next tile in path,
+		//then get new path. this will prevent calls to server
+        //happening too frequently.
+    	if(this.player.nextDest !== null)
+    	{
+    		//flag so we can get new path once we reach the next tile
+    		this.player.newDestSelected = true
+    		this.player.selectedDest = [tileXHit, tileZHit]
+
+    		//clear next destination if one exists so the player
+    		//will stop moving on the next tile
+    		this.player.nextDest = [-1, -1]
+        }else{
+        	//request new path for chosen destination
+    		this.requestPath(
+				this.player.tileX,
+				this.player.tileZ,
+				tileXHit,
+				tileZHit
+				)
+        }
+    }
+
+    /**
+     * What happens on mouse click
+     */  
+    mouseClickBehavior(){
+    	var hits = this.rayCastToGround()
+
+		if(this.keyState["click"]){
+	        if(hits[0] !== undefined){
+	        	let mouseHit = hits[0].pickedPoint
+
+	        	let selTile = this.selectedTile(mouseHit.x, mouseHit.z)
+	        	if(selTile !== undefined){
+					selTile.position.y = 10
+	        	}
+
+		        this.selectNewPath(mouseHit.x, mouseHit.z)
+		    }
+		    this.keyState["click"] = false
+		}
+    }
+
+    /**
+     * Get new angle a thing needs in order to rotate by the shortest
+     * arc from its current angle.
+     */ 
+    newAngleForThing(thing){
+    	let newAngle
+
+    	//get new direction player must face
+		if(thing.tileX > this.worldToTile(this.player.destWorld[0])
+			&& thing.tileZ > this.worldToTile(this.player.destWorld[1]))
+		{
+			newAngle =  this.negZnegX()
+		}else if(thing.tileX > this.worldToTile(this.player.destWorld[0])
+			&& thing.tileZ < this.worldToTile(this.player.destWorld[1]))
+		{
+			newAngle =  this.posZnegX()
+		}else if(thing.tileX < this.worldToTile(this.player.destWorld[0])
+			&& thing.tileZ > this.worldToTile(this.player.destWorld[1]))
+		{
+			newAngle =  this.negZposX()
+		}else if(thing.tileX < this.worldToTile(this.player.destWorld[0])
+			&& thing.tileZ < this.worldToTile(this.player.destWorld[1]))
+		{
+			newAngle =  this.posZposX()
+		}else if(thing.tileX > this.worldToTile(this.player.destWorld[0])){
+			newAngle =  this.negX()
+		}else if(thing.tileX < this.worldToTile(this.player.destWorld[0])){
+			newAngle =  this.posX()
+		}else if(thing.tileZ < this.worldToTile(this.player.destWorld[1])){
+			newAngle =  this.posZ()
+		}else if(thing.tileZ > this.worldToTile(this.player.destWorld[1])){
+			newAngle =  this.negZ()
+		}
+
+		//get player's current angle as an angle between 0 and 360
+		let pDeg = thing.newAngle * (180 / Math.PI)
+		while(pDeg < 0)
+			pDeg += 360
+		while(pDeg > 360)
+			pDeg -= 360
+		let nDeg = newAngle * (180 / Math.PI)
+		while(nDeg < 0)
+			nDeg += 360
+		while(nDeg > 360)
+			nDeg -= 360
+
+		//get rid of random .00000034 that may show up
+		pDeg = Math.round(pDeg)
+		nDeg = Math.round(nDeg)
+
+		//360 and 0 are equivalent, but I only check for 0
+		if(pDeg == 360)
+			pDeg = 0
+		if(nDeg == 360)
+			nDeg = 0
+
+		//90 left
+		if(pDeg == 90 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 90 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 90 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 90 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//90 right
+		else if(pDeg == 90 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 90 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 90 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//135 left
+		else if(pDeg == 135 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 135 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 135 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 135 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//135 right
+		else if(pDeg == 135 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 135 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 135 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//180 left
+		else if(pDeg == 180 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 180 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 180 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 180 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//180 right
+		else if(pDeg == 180 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 180 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 180 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//225 left
+		else if(pDeg == 225 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 225 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 225 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 225 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//225 right
+		else if(pDeg == 225 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 225 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 225 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//270 left
+		else if(pDeg == 270 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 270 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 270 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 270 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//270 right
+		else if(pDeg == 270 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 270 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 270 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//315 left
+		else if(pDeg == 315 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 315 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 315 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 315 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//315 right
+		else if(pDeg == 315 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 315 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 315 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//0 left
+		else if(pDeg == 0 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 0 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 0 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 0 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//0 right
+		else if(pDeg == 0 && nDeg == 45){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 0 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 0 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+		//45 left
+		else if(pDeg == 45 && nDeg == 0){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -45)
+		}else if(pDeg == 45 && nDeg == 315){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -90)
+		}else if(pDeg == 45 && nDeg == 270){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -135)
+		}else if(pDeg == 45 && nDeg == 225){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, -180)
+		}
+		//45 right
+		else if(pDeg == 45 && nDeg == 90){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 45)
+		}else if(pDeg == 45 && nDeg == 135){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 90)
+		}else if(pDeg == 45 && nDeg == 180){
+			thing.newAngle = this.rotateByDeg(thing.newAngle, 135)
+		}
+    }
+
+    /**
+     * Update the movement of a moving thing. For movement
+     * controlled by pathfinding.
+     */ 
+    moveThing(thing){
+    	let vehicle
+    	if(thing == this.player){
+    		vehicle = thing.parent
+    	}else{
+    		vehicle = thing
+    	}
+
+    	//increment of movement per frame
+    	let moveInc = new BABYLON.Vector3(
+    		this.player.destWorld[0] - vehicle.position.x,
+    		0,
+    		this.player.destWorld[1] - vehicle.position.z)
+    	.normalize().scale(1)
+
+    	if(Math.abs(this.player.destWorld[0] - vehicle.position.x) 
+    		> Math.abs(moveInc.x)
+    		|| Math.abs(this.player.destWorld[1] - vehicle.position.z) 
+    		> Math.abs(moveInc.z))
+    	{
+    		//set new angle
+    		this.newAngleForThing(thing)
+
+    		//continue moving thing toward destination
+			vehicle.position = vehicle.position.add(moveInc)
+    	}else{
+    		//player arrived at next spot. change their tile coords.
+    		thing.tileX = this.worldToTile(this.player.destWorld[0])
+    		thing.tileZ = this.worldToTile(this.player.destWorld[1])
+
+    		//if we're currently moving
+    		if(thing.nextDest !== null){
+    			//the next tile isn't the final spot
+    			if(thing.nextDest[0] != -1 && thing.nextDest[1] != -1){
+    				//set new destination
+	    			this.getNextInPath(thing.nextDest[0], thing.nextDest[1])
+
+	    			//incremement movement for this frame to prevent
+	    			//stop/go jerkiness
+	    			vehicle.position = vehicle.position.add(moveInc)
+
+	    			if(thing == this.player){
+		    			//request new chunk
+		    			this.requestChunk(thing.tileX, thing.tileZ)
+		    		}
+    			//if next tile IS final spot
+    			}else if(thing.nextDest[0] == -1 && thing.nextDest[1] == -1){
+    				//nullify path
+    				thing.nextDest = null
+
+	    			if(thing == this.player){
+		    			//request new chunk
+		    			this.requestChunk(thing.tileX, thing.tileZ)
+		    		}
+    			}
+
+    			//if we selected a new destination mid-path, request
+    			//path to that destination
+    			if(this.player.newDestSelected){
+		    		this.requestPath(
+	    				thing.tileX,
+	    				thing.tileZ,
+	    				this.player.selectedDest[0],
+	    				this.player.selectedDest[1]
+	    				)
+
+		    		//unflag
+	    			this.player.newDestSelected = false
+	    		}
+	    	}
+    	}
+    }
+
+    /**
+     * Update rotation of thing to new angle
+     */ 
+    updateThingRotation(thing){
+    	//lerptate the player
+    	if(Math.abs(thing.rotation.y - thing.newAngle) > 0.01){
+    		let left = thing.rotation.y - thing.newAngle
+    		let right = thing.newAngle - thing.rotation.y
+
+    		if(left < right)
+	    		thing.rotation.y -= left / 5
+	    	else
+	    		thing.rotation.y += right / 5
+	    }
+    }
+
 	update(){
 		this.scene.render()
+
+		//camera zoom in/out functionality
+		if(this.keyState['zoomIn']){
+			this.cameraOrtho(++this.orthoSize)
+			this.keyState['zoomIn'] = false
+		}else if (this.keyState['zoomOut']){
+			this.cameraOrtho(--this.orthoSize)
+			this.keyState['zoomOut'] = false
+		}
 
 		if(this.keyState['w'] == true){
 			this.camera.heightOffset -= 2
@@ -590,336 +975,16 @@ class Game{
 			this.camera.heightOffset += 2
 		}
 
-		if(this.keyState["click"]){
-	        var hits = this.scene.multiPick(
-	        	this.scene.pointerX, 
-	        	this.scene.pointerY,
-	        	this.groundPredicate,
-	        	this.camera)
+		this.mouseClickBehavior()
 
-	        if(hits[0] !== undefined){
-	        	let mouseHit = hits[0].pickedPoint
-
-		        let tileXHit = this.worldToTile(mouseHit.x)
-		        let tileZHit = this.worldToTile(mouseHit.z)
-
-		        //if player is currently moving along path and 
-				//player wants to find a new path, cancel current path, 
-				//wait until character gets to next tile in path,
-				//then get new path. this will prevent calls to server
-		        //happening too frequently.
-	        	if(this.nextDest !== null)
-		    	{
-		    		//flag so we can get new path once we reach the next tile
-		    		this.newDestSelected = true
-		    		this.selectedDest = [tileXHit, tileZHit]
-
-		    		//clear next destination if one exists so the player
-		    		//will stop moving on the next tile
-		    		this.nextDest = [-1, -1]
-		        }else{
-		        	//request new path for chosen destination
-		    		this.requestPath(
-	    				this.player.tileX,
-	    				this.player.tileZ,
-	    				tileXHit,
-	    				tileZHit
-	    				)
-		        }
-		    }
-		    this.keyState["click"] = false
-		}
-
-		//increment of movement per frame
-    	let moveInc = new BABYLON.Vector3(
-    		this.destWorld[0] - this.playerFollow.position.x,
-    		0,
-    		this.destWorld[1] - this.playerFollow.position.z)
-    	.normalize().scale(1)
-
-    	//if player hasn't reached next spot, move them
-    	if(Math.abs(this.destWorld[0] - this.playerFollow.position.x) 
-    		> Math.abs(moveInc.x)
-    		|| Math.abs(this.destWorld[1] - this.playerFollow.position.z) 
-    		> Math.abs(moveInc.z))
-    	{
-    		let newRot
-
-    		if(this.player.tileX > this.worldToTile(this.destWorld[0])
-    			&&
-    			this.player.tileZ > this.worldToTile(this.destWorld[1]))
-    		{
-    			newRot = this.negZnegX()
-    		}else if(this.player.tileX > this.worldToTile(this.destWorld[0])
-    			&&
-    			this.player.tileZ < this.worldToTile(this.destWorld[1]))
-    		{
-    			newRot = this.posZnegX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])
-    			&&
-    			this.player.tileZ > this.worldToTile(this.destWorld[1]))
-    		{
-    			newRot = this.negZposX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])
-    			&&
-    			this.player.tileZ < this.worldToTile(this.destWorld[1]))
-    		{
-    			newRot = this.posZposX()
-    		}else if(this.player.tileX > this.worldToTile(this.destWorld[0])){
-    			newRot = this.negX()
-    		}else if(this.player.tileX < this.worldToTile(this.destWorld[0])){
-    			newRot = this.posX()
-    		}else if(this.player.tileZ < this.worldToTile(this.destWorld[1])){
-    			newRot = this.posZ()
-    		}else if(this.player.tileZ > this.worldToTile(this.destWorld[1])){
-    			newRot = this.negZ()
-    		}
-
-    		//get y rotation as an angle between 0 and 360
-			let pDeg = this.player.newRot * (180 / Math.PI)
-			while(pDeg < 0)
-				pDeg += 360
-			while(pDeg > 360)
-				pDeg -= 360
-			let nDeg = newRot * (180 / Math.PI)
-			while(nDeg < 0)
-				nDeg += 360
-			while(nDeg > 360)
-				nDeg -= 360
-
-			//get rid of random .00000034 that may show up
-			pDeg = Math.round(pDeg)
-			nDeg = Math.round(nDeg)
-
-			//360 and 0 are equivalent, but I only check for 0
-			if(pDeg == 360)
-				pDeg = 0
-			if(nDeg == 360)
-				nDeg = 0
-
-			//90 left
-			if(pDeg == 90 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 90 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 90 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 90 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//90 right
-			else if(pDeg == 90 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 90 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 90 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//135 left
-			else if(pDeg == 135 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 135 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 135 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 135 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//135 right
-			else if(pDeg == 135 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 135 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 135 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//180 left
-			else if(pDeg == 180 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 180 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 180 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 180 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//180 right
-			else if(pDeg == 180 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 180 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 180 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//225 left
-			else if(pDeg == 225 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 225 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 225 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 225 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//225 right
-			else if(pDeg == 225 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 225 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 225 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//270 left
-			else if(pDeg == 270 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 270 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 270 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 270 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//270 right
-			else if(pDeg == 270 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 270 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 270 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//315 left
-			else if(pDeg == 315 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 315 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 315 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 315 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//315 right
-			else if(pDeg == 315 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 315 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 315 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//0 left
-			else if(pDeg == 0 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 0 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 0 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 0 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//0 right
-			else if(pDeg == 0 && nDeg == 45){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 0 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 0 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-			//45 left
-			else if(pDeg == 45 && nDeg == 0){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -45)
-			}else if(pDeg == 45 && nDeg == 315){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -90)
-			}else if(pDeg == 45 && nDeg == 270){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -135)
-			}else if(pDeg == 45 && nDeg == 225){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, -180)
-			}
-			//45 right
-			else if(pDeg == 45 && nDeg == 90){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 45)
-			}else if(pDeg == 45 && nDeg == 135){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 90)
-			}else if(pDeg == 45 && nDeg == 180){
-				this.player.newRot = this.rotateByDeg(this.player.newRot, 135)
-			}
-
-    		//continue moving toward destination
-    		this.playerFollow.position = this.playerFollow.position.add(moveInc)
-    	}else{
-    		// //player arrived at next spot. change their tile coords.
-    		this.player.tileX = this.worldToTile(this.destWorld[0])
-    		this.player.tileZ = this.worldToTile(this.destWorld[1])
-
-    		//if we're currently moving
-    		if(this.nextDest !== null){
-    			//the next tile isn't the final spot
-    			if(this.nextDest[0] != -1 && this.nextDest[1] != -1){
-    				//set new destination
-	    			this.getNextInPath(this.nextDest[0], this.nextDest[1])
-
-	    			//incremement movement for this frame to prevent
-	    			//stop/go jerkiness
-	    			this.playerFollow.position = this.playerFollow.position.add(moveInc)
-
-	    			//request new chunk
-	    			this.requestChunk(this.player.tileX, this.player.tileZ)
-    			//if next tile IS final spot
-    			}else if(this.nextDest[0] == -1 && this.nextDest[1] == -1){
-    				//nullify path
-    				this.nextDest = null
-
-	    			//request new chunk
-	    			this.requestChunk(this.player.tileX, this.player.tileZ)
-    			}
-
-    			//if we selected a new destination mid-path, request
-    			//path to that destination
-    			if(this.newDestSelected){
-		    		this.requestPath(
-	    				this.player.tileX,
-	    				this.player.tileZ,
-	    				this.selectedDest[0],
-	    				this.selectedDest[1]
-	    				)
-
-		    		//unflag
-	    			this.newDestSelected = false
-	    		}
-    		}
-    	}
-
-
-    		let x = 15 - (this.player.tileX - this.radius)
-    		let z = 15 - (this.player.tileZ - this.radius)
-    		if(this.chunk[x] !== undefined
-    			&& this.chunk[x][z] !== undefined
-    			&& this.chunk[x][z] !== null)
-    		this.chunk[x][z].position.y = 10
-
-    	//lerptate the player
-    	if(Math.abs(this.player.rotation.y - this.player.newRot) > 0.01){
-    		let left = this.player.rotation.y - this.player.newRot
-    		let right = this.player.newRot - this.player.rotation.y
-
-    		if(left < right)
-	    		this.player.rotation.y -= left / 5
-	    	else
-	    		this.player.rotation.y += right / 5
-	    }
+		this.moveThing(this.player)
+		this.updateThingRotation(this.player)
 
 	    //have ground object follow player
 		this.ground.position = this.playerFollow.position
 
 		//update camera height and radius from player
 		this.camera.radius = 200
-
-		//camera zoom in/out functionality
-		if(this.keyState['zoomIn']){
-			this.cameraOrtho(++this.orthoSize)
-			this.keyState['zoomIn'] = false
-		}else if (this.keyState['zoomOut']){
-			this.cameraOrtho(--this.orthoSize)
-			this.keyState['zoomOut'] = false
-		}
 	}
 }
 
