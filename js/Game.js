@@ -6,11 +6,6 @@ var work = require('webworkify')
 
 class Game{
 	constructor(engine, canvas, scene, appW, appH, ws){
-		// this.instanceWorker = work(require('./InstanceWorker.js'))
-		// this.instanceWorker.addEventListener('message', function (ev) {
-		//     console.log(ev.data)
-		// })
-
 		this.scene = scene
 		this.engine = engine
 		this.ws = ws
@@ -87,9 +82,9 @@ class Game{
 	    }])
 
 	    let angles = 0.15
-	    var light5 = new BABYLON.HemisphericLight("light3", 
-	    	new BABYLON.Vector3(-angles, 1, -angles / 2), scene)
-	    light5.intensity = 1.5
+	    var light = new BABYLON.HemisphericLight("light", 
+	    	new BABYLON.Vector3(0, 1, .25), scene)
+	    light.intensity = 1.5
 
 		window.addEventListener("resize", function () {
 		    engine.resize()
@@ -110,6 +105,9 @@ class Game{
 	 * from server
 	 */ 
 	requestPath(px, pz, dx, dz){
+		//TODO: Check if spot is walkable first, to prevent
+		//needless server request
+
 		let mess = {
 			h: "path",
 			v: {
@@ -191,78 +189,6 @@ class Game{
 			this.meshes[meshName] = mesh
 		}
 
-// 		this.pool["blue"] = []
-// 		for(let i = 0; i < ((this.radius * 2) + 1) * ((this.radius * 2) + 1); i++){
-// 			let ni = this.meshes["blue"].createInstance()
-// 			ni.setEnabled(false)
-// 			this.pool["blue"].push(ni)
-// 		}
-
-// let hh = {hey: 3, sd: function(){console.log("ss")}}
-// console.log(JSON.parse(JSON.stringify(hh)))
-
-
-// 		// This works on all devices/browsers, and uses IndexedDBShim as a final fallback 
-// 		var indexedDB = window.indexedDB 
-// 		|| window.mozIndexedDB 
-// 		|| window.webkitIndexedDB 
-// 		|| window.msIndexedDB 
-// 		|| window.shimIndexedDB
-
-// 		// Open (or create) the database
-// 		var open = indexedDB.open("GameDB", 2)
-
-// 		// Create the schema
-// 		open.onupgradeneeded = ()=> {
-// 		    var db = open.result
-
-// 		    for(let i in this.pool){
-// 		    	var store = db.createObjectStore("MeshInstancess", {keyPath: "MeshName"})
-// 		   		// var index = store.createIndex("MeshName", [])
-// 		    }
-		    
-// 		    console.log("upgraded")
-// 		}
-
-// 		open.onsuccess = ()=> {
-// 		    // Start a new transaction
-// 		    var db = open.result
-// 		    var tx = db.transaction("MeshInstancess", "readwrite")
-// 		    var store = tx.objectStore("MeshInstancess")
-// 		    // var index = store.index("MeshName")
-
-// 		    let count = 0
-// 		    for(let i in this.pool){
-// 		    	// store.put({MeshName:i , this.pool[i]})
-// 		    	// store.add({MeshName: i + ":" + (count++) , mesh: this.pool[i]})
-// 		    }
-// 		    store.put({MeshName: "sss" , mesh: {hsd: "Sss", ssd: 52}})
-// 		    store.add({MeshName: "sss" , mesh: hh})
-
-// 		    // Add some data
-// 		    // store.put({id: 67890, name: {first: "Bob", last: "Smith"}, age: 35})
-		    
-// 		    // Query the data
-// 		    var getJohn = store.get("sss");
-// 		    // var getBob = index.get(["Smith", "Bob"]);
-
-// 		    getJohn.onsuccess = function() {
-// 		        console.log(getJohn);  // => "John"
-// 		    };
-
-
-// 		    // // Close the db when the transaction is done
-// 		    // tx.oncomplete = function() {
-// 		    //     db.close();
-// 		    // };
-
-// 		    console.log(db)
-// 		}
-
-
-
-
-
 		//init player
 		this.player = this.meshes.chad
 		this.player.tileX = playerTileX
@@ -283,36 +209,23 @@ class Game{
 			this.update()
 		})
 
-		  		this.destWorld = []
 		//init player destination to their current position
-		this.destWorld[0] = this.playerFollow.position.x
-    	this.destWorld[1] = this.playerFollow.position.z
-
-
-    	// this.destWorld[0] = this.tileToWorld(this.player.tileX)
-    	// this.destWorld[1] = this.tileToWorld(this.player.tileZ)
+    	this.destWorld = []
+    	this.destWorld[0] = this.tileToWorld(this.player.tileX)
+    	this.destWorld[1] = this.tileToWorld(this.player.tileZ)
 
     	//render first chunk around player
     	this.requestChunk(this.player.tileX, this.player.tileZ)
 
     	this.chunk = []
-		for(let x = 0; x < (this.radius * 2) + 1; x++){
-			let col = []
-			for(let z = 0; z < (this.radius * 2) + 1; z++){
-				let newInstance = this.meshes["blue"].createInstance()
-				col.push(newInstance)
-			}
-			this.chunk.push(col)
-		}
-
-		// console.log(sizeof.sizeof(this) / 1000000)
-	
-
-		// setInterval(()=>{
-		   	
+		// for(let x = 0; x < (this.radius * 2) + 1; x++){
+		// 	let col = []
+		// 	for(let z = 0; z < (this.radius * 2) + 1; z++){
+		// 		let newInstance = this.meshes["blue"].createInstance()
+		// 		col.push(newInstance)
 		// 	}
-		// , 100)
-
+		// 	this.chunk.push(col)
+		// }
 	}
 
 	renderChunk(chunk, r){
@@ -668,10 +581,10 @@ class Game{
 			this.camera.heightOffset -= 2
 		}
 		if(this.keyState['d'] == true){
-			this.camera.rotationOffset -= 0.5
+			this.camera.rotationOffset += 2
 		}
 		if(this.keyState['a'] == true){
-			this.camera.rotationOffset += 0.5
+			this.camera.rotationOffset -= 2
 		}
 		if(this.keyState['s'] == true){
 			this.camera.heightOffset += 2

@@ -28,26 +28,37 @@ let httpserver = http.createServer(app).listen(PORT)
 const wss = new SocketServer({server: httpserver})
 
 let map = []
-let aStarMap = []
 let d = 300
 for(let x = 0; x < d; x++){
 	let col = []
-	let aStarMapCol = []
 	for(let z = 0; z < d; z++){
 		let tile = {}
-		if(Math.random() < 0.5)
-			tile.name = "blue"
-		else
-			tile.name = "chair1"
-		tile.walkable = 1
-		col.push(tile)
 
-		if(tile.walkable == 1)
+		if(Math.random() < 0.7){
+			tile.name = "blue"
+			tile.walkable = 1
+		}
+		else{
+			tile.name = "chair1"
+			tile.walkable = 0
+		}
+		col.push(tile)
+	}
+	map.push(col)
+}
+
+let aStarMap = []
+//fill in pathfinding map
+for(let x = 0; x < d; x++){
+	let aStarMapCol = []
+	for(let z = 0; z < d; z++){
+		//z and x have to be reversed for eaststar to
+		//represent map correctly
+		if(map[z][x].walkable == 1)
 			aStarMapCol.push(1)
 		else
 			aStarMapCol.push(0)
 	}
-	map.push(col)
 	aStarMap.push(aStarMapCol)
 }
 
@@ -196,23 +207,16 @@ function stringToArrayBuffer(string) {
 }
 
 /**
- * Add bytes from sent string
+ * Accumulate bytes sent to check bandwidth usage
  */ 
-function addBytesString(send){
-	mb += sizeof.sizeof(send) / 1000000
-	console.log(mb)	
-}
-
-/**
- * Add bytes from sent ArrayBuffer
- */ 
-function addBytesBinary(send){
-	mb += send.byteLength / 1000000
-	console.log(mb)	
+function addBytes(bytes){
+	// mb += bytes / 1000000
+	mb += bytes
+	// console.log(mb)
 }
 
 //send messages to client as binary rather than string
-let usingBinary = true
+let usingBinary = false
 
 //add latency to communication
 let simulatingLatency = true
@@ -234,7 +238,7 @@ function sendMessage(reciever, whatToSend){
 			+ send.byteLength)
 
 		//accumulate bytes
-		addBytesBinary(send)
+		addBytes(send.byteLength)
 
 		//send message
 		if(reciever.readyState === reciever.OPEN){
@@ -254,7 +258,7 @@ function sendMessage(reciever, whatToSend){
 		let send = whatToSend
 
 		//accumulate bytes
-		addBytesString(send)
+		addBytes(sizeof.sizeof(send))
 
 		//send message
 		if(reciever.readyState === reciever.OPEN){
