@@ -7,6 +7,7 @@ const cors = require('cors')
 let jsonfile = require('jsonfile')
 let easystarjs = require('easystarjs')
 var sizeof = require('sizeof')
+var perlin = require('perlin-noise')
 
 let gloss = require("./assets/gloss.json")
 
@@ -17,10 +18,10 @@ let http = require("http")
 let app = express()
 const PORT = process.env.PORT || 5000
 
-const corsOptions = {
-  origin: '*'
-}
-app.use(cors(corsOptions))
+// const corsOptions = {
+//   origin: '*'
+// }
+// app.use(cors(corsOptions))
 
 app.use(express.static(__dirname))
 
@@ -29,17 +30,19 @@ const wss = new SocketServer({server: httpserver})
 
 let map = []
 let d = 300
+const h = perlin.generatePerlinNoise(d, d)
 for(let x = 0; x < d; x++){
 	let col = []
 	for(let z = 0; z < d; z++){
 		let tile = {}
 
-		if(Math.random() < 0.7){
-			tile.name = "blue"
+		// if(h[(x * d) + z] < 0.5){
+		if(Math.random() < 0.9){
+			tile.name = "building_grass"
 			tile.walkable = 1
 		}
 		else{
-			tile.name = "chair1"
+			tile.name = "building_tree"
 			tile.walkable = 0
 		}
 		col.push(tile)

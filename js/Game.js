@@ -18,7 +18,7 @@ class Game{
 		this.meshes = {}
 
 		this.spacing = 15
-		this.radius = 10
+		this.radius =  10
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
@@ -35,11 +35,11 @@ class Game{
 			scene)
 		this.camera.rotationOffset = 225
 		this.camera.heightOffset = 200
-
+		this.camera.radius = 200
 		this.camera.minZ = -90
 		
 		this.orthoSize = 4
-		this.cameraOrtho(this.orthoSize)
+		// this.cameraOrtho(this.orthoSize)
 	
 		this.keyState = {}
 		var onKeyDown = (evt)=> {
@@ -75,7 +75,7 @@ class Game{
 
 	    let angles = 0.15
 	    var light = new BABYLON.HemisphericLight("light", 
-	    	new BABYLON.Vector3(0, 1, .25), scene)
+	    	new BABYLON.Vector3(0, 1, 0), scene)
 	    light.intensity = 1.5
 
 		window.addEventListener("resize", function () {
@@ -87,8 +87,6 @@ class Game{
 		//make non-specular material to prevent shine
 		var mat = new BABYLON.StandardMaterial("mat", this.scene)
 		mat.specularColor = BABYLON.Color3.Black()
-
-		this.pool = {}
 
 		//setup meshes
 		for(let i = 0; i < tasks.length; i++){
@@ -106,14 +104,17 @@ class Game{
 			//give meshes an outline
 			mesh.outlineWidth = 0.15
 			mesh.outlineColor = new BABYLON.Color4(0, 0, 0, 1)
-			mesh.renderOutline = true
+			// mesh.renderOutline = true
 
 			//add mesh to mesh holder
 			this.meshes[meshName] = mesh
 		}
 
 		//init player
-		this.player = this.meshes.chad
+		this.player = this.meshes.char_chad_walk_1
+		console.log(this.meshes)
+		this.scene.beginAnimation(this.player, 0, 405, true, 1)
+		// this.scene.beginAnimation(this.player.skeleton, 0, 5, true, 0.1)
 		this.player.tileX = playerTileX
 		this.player.tileZ = playerTileZ
 		this.playerFollow.position.x = this.tileToWorld(this.player.tileX)
@@ -130,7 +131,11 @@ class Game{
 		this.player.parent = this.playerFollow
 
 		this.camera.lockedTarget = this.playerFollow
-		this.camera.cameraAcceleration = 0.5
+		this.camera.cameraAcceleration = 0.3
+		// this.camera.maxCameraSpeed = 1
+		this.camera.speed = 0.1
+
+		console.log(this.camera)
 
 		//start update loop
 		this.engine.runRenderLoop(()=> {
@@ -158,6 +163,41 @@ class Game{
 		// 	}
 		// 	this.chunk.push(col)
 		// }
+	
+		// BABYLON.SceneLoader.ImportMesh(
+		// 	"", "./assets/models/building/", "roof1.babylon", this.scene, 
+		// 	function (newMeshes){
+		// 		console.log(newMeshes)
+		// 	})
+		// let newInstance = this.meshes["blue"].createInstance()
+		// console.log(JSON.stringify(newInstance))
+	
+		// BABYLON.SceneLoader.ForceFullSceneLoadingForIncremental = true
+
+		//  BABYLON.SceneLoader.Load(
+		//  	"assets/models/building/", "blue.incremental.babylon", this.engine,  (newScene)=>{
+		//  		console.log(newScene)
+		//  	})
+
+		// this.doodo
+		// BABYLON.SceneLoader.ImportMesh(
+		// 		"", "./assets/models/building/", "blue.incremental" + ".babylon", 
+		// 		this.scene, 
+		// 		 (newMeshes)=>{
+		// 	console.log(newMeshes)
+
+		// 	this.doodo = newMeshes[0]
+		// 	this.doodo.material = mat
+
+		// 	// console.log(BABYLON.Scene.isActiveMesh(newInstance))
+
+		// 	// newInstance.tileX = this.player.tileX + (x - r)
+		// 	// newInstance.tileZ = this.player.tileZ + (z - r)
+
+		// 	// newInstance.position.x = this.tileToWorld(newInstance.tileX)
+		// 	// newInstance.position.z = this.tileToWorld(newInstance.tileZ)
+		// 	this.doodo.position.y = 30
+		// })
 	}
 
 	cameraOrtho(size){
@@ -254,34 +294,8 @@ class Game{
 			}
     	}
 
-    	// var disposePromises = []
     	let count = 0
-
-		//dispose all meshes in old chunk
-		//and reset all entries
-		for(let x = 0; x < this.chunk.length; x++){
-			for(let z = 0; z < this.chunk[x].length; z++){
-				let ch = this.chunk
-				if(this.chunk[x][z] !== null){
-					// disposePromises.push(new Promise(function(resolve, reject) {
-
-						this.chunk[x][z].dispose()
-						this.chunk[x][z] = null
-						// resolve()
-					// }))
-					
-				}
-				this.chunk[x][z] = null
-			}
-		}
-
-		// Promise.all(disposePromises).then(function(){
-		// 	// console.log("disposing done")
-		// })
-
 		var instancePromises = []
-
-		count = 0
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
 
@@ -295,9 +309,11 @@ class Game{
 				let _this = this
 				count++
 				// instancePromises.push(new Promise(function(resolve, reject) {
-					
+					let wait = setTimeout(()=>{
+						if(_this.chunk[x][z] !== null)
+							_this.chunk[x][z].dispose()
+						_this.chunk[x][z] = null
 
-					// let wait = setTimeout(()=>{
 						//convert model ID to model name
 						let modelName = gloss.IDToModel[chunk[x][z]]
 
@@ -312,18 +328,15 @@ class Game{
 
 						_this.chunk[x][z] = newInstance
 						
-					// 	resolve()
-					// }, count * 3)
-					
+						// resolve()
+					}, count * 1)
 				// }))
-
-				
 			}
 		}
 
-		Promise.all(instancePromises).then(function(){
-			console.log("instances done")
-		})
+		// Promise.all(instancePromises).then(function(){
+		// 	console.log("instances done")
+		// })
 	}
 
 
@@ -646,7 +659,7 @@ class Game{
 
 	        	let selTile = this.selectedTile(mouseHit.x, mouseHit.z)
 	        	if(selTile !== undefined){
-					selTile.position.y = 10
+					// selTile.position.y = 10
 	        	}
 
 		        this.selectNewPath(mouseHit.x, mouseHit.z)
@@ -955,10 +968,14 @@ class Game{
 
 		//camera zoom in/out functionality
 		if(this.keyState['zoomIn']){
-			this.cameraOrtho(++this.orthoSize)
+			// this.cameraOrtho(++this.orthoSize)
+			this.camera.radius -= 15
+			this.camera.heightOffset -= 15
 			this.keyState['zoomIn'] = false
 		}else if (this.keyState['zoomOut']){
-			this.cameraOrtho(--this.orthoSize)
+			// this.cameraOrtho(--this.orthoSize)
+			this.camera.radius += 15
+			this.camera.heightOffset += 15
 			this.keyState['zoomOut'] = false
 		}
 
@@ -978,13 +995,16 @@ class Game{
 		this.mouseClickBehavior()
 
 		this.moveThing(this.player)
+
 		this.updateThingRotation(this.player)
 
 	    //have ground object follow player
 		this.ground.position = this.playerFollow.position
 
+		this.player.position.y = 2
+
 		//update camera height and radius from player
-		this.camera.radius = 200
+		// this.camera.radius = 200
 	}
 }
 

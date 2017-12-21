@@ -8,7 +8,7 @@ var isNode = new Function("try {return this===global;}catch(e){return false;}")
 if(isNode())
 	server = require('../server.js')
 
-var sizeof = require('sizeof')
+let sizeof = require('sizeof')
 
 //glossary
 let gloss = require("../assets/gloss.json")
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		assetsManager.useDefaultLoadingScreen = false
 
 		for(let i in gloss.models){
-			assetsManager.addMeshTask(i, "", "", gloss.models[i].path)
+			assetsManager.addMeshTask(gloss.models[i].modelUnderscore, "", "", gloss.models[i].path)
 		}
 
 		assetsManager.load()
