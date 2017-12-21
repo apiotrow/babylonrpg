@@ -111,9 +111,61 @@ class Game{
 		}
 
 		//init player
-		this.player = this.meshes.char_chad_walk_1
-		console.log(this.meshes)
-		this.scene.beginAnimation(this.player, 0, 405, true, 1)
+		this.player = {}
+		this.player.mesh = new BABYLON.Mesh()
+		console.log(this.player)
+		this.player.animation = "walk"
+		this.player.parent = this.playerFollow
+		this.player.runAnim = function(game){
+			let animFrame = 0
+
+			let frameInstances = {}
+			for(let i in gloss.modelHier.char.chad[this.animation]){
+				let animFrameName = gloss.modelHier.char.chad[this.animation][i]
+				let newMesh = game.meshes[animFrameName].createInstance()
+				frameInstances[i] = newMesh
+				newMesh.parent = this.mesh
+			}
+			console.log(frameInstances[0])
+			// this.mesh = frameInstances[0]
+			for(let i in frameInstances){
+				// frameInstances[i].setEnabled(false)
+				// frameInstances[i].isVisible = false
+				// frameInstances[i].Visibility = 0
+			}
+			// frameInstances[0].setEnabled(true)
+
+			setInterval(()=>{
+				animFrame++
+				if(gloss.modelHier.char.chad[this.animation][animFrame] === undefined)
+					animFrame = 0
+					let animFrameName = gloss.modelHier.char.chad[this.animation][animFrame]
+
+					for(let i in frameInstances){
+						// console.log(animFrame + " and " + i)
+						if(i == animFrame){
+							frameInstances[i].setEnabled(true)
+						}
+						else{
+							// this.mesh = frameInstances[i]
+							frameInstances[i].setEnabled(false)
+						}
+					}
+					
+					// let newMesh = game.meshes[animFrameName].createInstance()
+					// newMesh.parent = this.mesh.parent
+					// this.mesh.dispose()
+					// this.mesh = newMesh
+					// this.mesh.position.y = 2
+
+
+					// this.mesh.parent = 
+					// console.log(animFrameName)
+			}, 200)
+		}
+		this.player.runAnim(this)
+		console.log(gloss.modelHier.char.chad.walk)
+		// this.scene.beginAnimation(this.player, 0, 405, true, 1)
 		// this.scene.beginAnimation(this.player.skeleton, 0, 5, true, 0.1)
 		this.player.tileX = playerTileX
 		this.player.tileZ = playerTileZ
@@ -128,7 +180,8 @@ class Game{
 
 		// this.player.position.x = this.tileToWorld(this.player.tileX)
 		// this.player.position.z = this.tileToWorld(this.player.tileZ)
-		this.player.parent = this.playerFollow
+		
+		this.player.mesh.parent = this.playerFollow
 
 		this.camera.lockedTarget = this.playerFollow
 		this.camera.cameraAcceleration = 0.3
@@ -952,14 +1005,14 @@ class Game{
      */ 
     updateThingRotation(thing){
     	//lerptate the player
-    	if(Math.abs(thing.rotation.y - thing.newAngle) > 0.01){
-    		let left = thing.rotation.y - thing.newAngle
-    		let right = thing.newAngle - thing.rotation.y
+    	if(Math.abs(thing.mesh.rotation.y - thing.newAngle) > 0.01){
+    		let left = thing.mesh.rotation.y - thing.newAngle
+    		let right = thing.newAngle - thing.mesh.rotation.y
 
     		if(left < right)
-	    		thing.rotation.y -= left / 5
+	    		thing.mesh.rotation.y -= left / 5
 	    	else
-	    		thing.rotation.y += right / 5
+	    		thing.mesh.rotation.y += right / 5
 	    }
     }
 
@@ -1001,7 +1054,7 @@ class Game{
 	    //have ground object follow player
 		this.ground.position = this.playerFollow.position
 
-		this.player.position.y = 2
+		this.player.mesh.position.y = 2
 
 		//update camera height and radius from player
 		// this.camera.radius = 200

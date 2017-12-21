@@ -1,40 +1,40 @@
 {
     "modelHier": {
+        "building": {
+            "grass": "building_grass",
+            "wall1": "building_wall1",
+            "tree": "building_tree",
+            "blue": "building_blue",
+            "roof1": "building_roof1",
+            "chair1": "building_chair1"
+        },
         "char": {
             "chad": {
                 "parts": {
-                    "rleg": "./assets/models/char/chad/parts/rleg.babylon",
-                    "jaw": "./assets/models/char/chad/parts/jaw.babylon",
-                    "lleg": "./assets/models/char/chad/parts/lleg.babylon",
-                    "rarm": "./assets/models/char/chad/parts/rarm.babylon",
-                    "head": "./assets/models/char/chad/parts/head.babylon",
-                    "larm": "./assets/models/char/chad/parts/larm.babylon",
-                    "torso": "./assets/models/char/chad/parts/torso.babylon"
+                    "rleg": "char_chad_parts_rleg",
+                    "torso": "char_chad_parts_torso",
+                    "jaw": "char_chad_parts_jaw",
+                    "lleg": "char_chad_parts_lleg",
+                    "rarm": "char_chad_parts_rarm",
+                    "head": "char_chad_parts_head",
+                    "larm": "char_chad_parts_larm"
                 },
                 "walk": {
-                    "0": "./assets/models/char/chad/walk/0.babylon",
-                    "1": "./assets/models/char/chad/walk/1.babylon",
-                    "2": "./assets/models/char/chad/walk/2.babylon",
-                    "3": "./assets/models/char/chad/walk/3.babylon"
+                    "0": "char_chad_walk_0",
+                    "1": "char_chad_walk_1",
+                    "2": "char_chad_walk_2",
+                    "3": "char_chad_walk_3"
                 },
                 "idle": {
-                    "0": "./assets/models/char/chad/idle/0.babylon"
+                    "0": "char_chad_idle_0"
                 }
             }
-        },
-        "building": {
-            "roof1": "./assets/models/building/roof1.babylon",
-            "tree": "./assets/models/building/tree.babylon",
-            "chair1": "./assets/models/building/chair1.babylon",
-            "grass": "./assets/models/building/grass.babylon",
-            "blue": "./assets/models/building/blue.babylon",
-            "wall1": "./assets/models/building/wall1.babylon"
         }
     },
     "models": {
         "0": {
             "path": "./assets/models/char/chad/walk/0.babylon",
-            "ID": 16,
+            "ID": 17,
             "modelUnderscore": "char_chad_walk_0"
         },
         "1": {
@@ -49,113 +49,113 @@
         },
         "3": {
             "path": "./assets/models/char/chad/walk/3.babylon",
-            "ID": 8,
+            "ID": 6,
             "modelUnderscore": "char_chad_walk_3"
+        },
+        "grass": {
+            "path": "./assets/models/building/grass.babylon",
+            "ID": 0,
+            "modelUnderscore": "building_grass"
         },
         "rleg": {
             "path": "./assets/models/char/chad/parts/rleg.babylon",
-            "ID": 0,
+            "ID": 1,
             "modelUnderscore": "char_chad_parts_rleg"
         },
-        "jaw": {
-            "path": "./assets/models/char/chad/parts/jaw.babylon",
-            "ID": 1,
-            "modelUnderscore": "char_chad_parts_jaw"
-        },
-        "roof1": {
-            "path": "./assets/models/building/roof1.babylon",
+        "torso": {
+            "path": "./assets/models/char/chad/parts/torso.babylon",
             "ID": 2,
-            "modelUnderscore": "building_roof1"
+            "modelUnderscore": "char_chad_parts_torso"
         },
-        "lleg": {
-            "path": "./assets/models/char/chad/parts/lleg.babylon",
+        "wall1": {
+            "path": "./assets/models/building/wall1.babylon",
             "ID": 3,
-            "modelUnderscore": "char_chad_parts_lleg"
-        },
-        "rarm": {
-            "path": "./assets/models/char/chad/parts/rarm.babylon",
-            "ID": 5,
-            "modelUnderscore": "char_chad_parts_rarm"
+            "modelUnderscore": "building_wall1"
         },
         "tree": {
             "path": "./assets/models/building/tree.babylon",
-            "ID": 6,
+            "ID": 5,
             "modelUnderscore": "building_tree"
+        },
+        "jaw": {
+            "path": "./assets/models/char/chad/parts/jaw.babylon",
+            "ID": 8,
+            "modelUnderscore": "char_chad_parts_jaw"
+        },
+        "lleg": {
+            "path": "./assets/models/char/chad/parts/lleg.babylon",
+            "ID": 9,
+            "modelUnderscore": "char_chad_parts_lleg"
+        },
+        "blue": {
+            "path": "./assets/models/building/blue.babylon",
+            "ID": 11,
+            "modelUnderscore": "building_blue"
+        },
+        "roof1": {
+            "path": "./assets/models/building/roof1.babylon",
+            "ID": 12,
+            "modelUnderscore": "building_roof1"
         },
         "chair1": {
             "path": "./assets/models/building/chair1.babylon",
-            "ID": 7,
+            "ID": 13,
             "modelUnderscore": "building_chair1"
+        },
+        "rarm": {
+            "path": "./assets/models/char/chad/parts/rarm.babylon",
+            "ID": 14,
+            "modelUnderscore": "char_chad_parts_rarm"
         },
         "head": {
             "path": "./assets/models/char/chad/parts/head.babylon",
-            "ID": 9,
+            "ID": 15,
             "modelUnderscore": "char_chad_parts_head"
         },
         "larm": {
             "path": "./assets/models/char/chad/parts/larm.babylon",
-            "ID": 11,
+            "ID": 16,
             "modelUnderscore": "char_chad_parts_larm"
-        },
-        "grass": {
-            "path": "./assets/models/building/grass.babylon",
-            "ID": 12,
-            "modelUnderscore": "building_grass"
-        },
-        "torso": {
-            "path": "./assets/models/char/chad/parts/torso.babylon",
-            "ID": 14,
-            "modelUnderscore": "char_chad_parts_torso"
-        },
-        "blue": {
-            "path": "./assets/models/building/blue.babylon",
-            "ID": 15,
-            "modelUnderscore": "building_blue"
-        },
-        "wall1": {
-            "path": "./assets/models/building/wall1.babylon",
-            "ID": 17,
-            "modelUnderscore": "building_wall1"
         }
     },
     "modelToID": {
-        "char_chad_parts_rleg": 0,
-        "char_chad_parts_jaw": 1,
-        "building_roof1": 2,
-        "char_chad_parts_lleg": 3,
+        "building_grass": 0,
+        "char_chad_parts_rleg": 1,
+        "char_chad_parts_torso": 2,
+        "building_wall1": 3,
         "char_chad_walk_1": 4,
-        "char_chad_parts_rarm": 5,
-        "building_tree": 6,
-        "building_chair1": 7,
-        "char_chad_walk_3": 8,
-        "char_chad_parts_head": 9,
+        "building_tree": 5,
+        "char_chad_walk_3": 6,
+        "char_chad_idle_0": 7,
+        "char_chad_parts_jaw": 8,
+        "char_chad_parts_lleg": 9,
         "char_chad_walk_2": 10,
-        "char_chad_parts_larm": 11,
-        "building_grass": 12,
-        "char_chad_idle_0": 13,
-        "char_chad_parts_torso": 14,
-        "building_blue": 15,
-        "char_chad_walk_0": 16,
-        "building_wall1": 17
+        "building_blue": 11,
+        "building_roof1": 12,
+        "building_chair1": 13,
+        "char_chad_parts_rarm": 14,
+        "char_chad_parts_head": 15,
+        "char_chad_parts_larm": 16,
+        "char_chad_walk_0": 17
     },
     "IDToModel": {
-        "0": "char_chad_parts_rleg",
-        "1": "char_chad_parts_jaw",
-        "2": "building_roof1",
-        "3": "char_chad_parts_lleg",
+        "0": "building_grass",
+        "1": "char_chad_parts_rleg",
+        "2": "char_chad_parts_torso",
+        "3": "building_wall1",
         "4": "char_chad_walk_1",
-        "5": "char_chad_parts_rarm",
-        "6": "building_tree",
-        "7": "building_chair1",
-        "8": "char_chad_walk_3",
-        "9": "char_chad_parts_head",
+        "5": "building_tree",
+        "6": "char_chad_walk_3",
+        "7": "char_chad_idle_0",
+        "8": "char_chad_parts_jaw",
+        "9": "char_chad_parts_lleg",
         "10": "char_chad_walk_2",
-        "11": "char_chad_parts_larm",
-        "12": "building_grass",
-        "13": "char_chad_idle_0",
-        "14": "char_chad_parts_torso",
-        "15": "building_blue",
-        "16": "char_chad_walk_0",
-        "17": "building_wall1"
+        "11": "building_blue",
+        "12": "building_roof1",
+        "13": "building_chair1",
+        "14": "char_chad_parts_rarm",
+        "15": "char_chad_parts_head",
+        "16": "char_chad_parts_larm",
+        "17": "char_chad_walk_0"
     }
 }

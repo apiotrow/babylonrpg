@@ -145,7 +145,7 @@ function reduceFiles(){
 						    	}
 						    	hierarchy.push(fileName)
 						    	modelUnderscore += fileName
-						    	assignObject(gloss, hierarchy, pathForGloss)
+						    	assignObject(gloss, hierarchy, modelUnderscore)
 						    	
 
 						    	let modelid = modeliditer++
