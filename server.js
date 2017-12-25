@@ -29,11 +29,11 @@ let httpserver = http.createServer(app).listen(PORT)
 const wss = new SocketServer({server: httpserver})
 
 let map = []
-let d = 300
-const h = perlin.generatePerlinNoise(d, d)
-for(let x = 0; x < d; x++){
+let mapD = 300
+const h = perlin.generatePerlinNoise(mapD, mapD)
+for(let x = 0; x < mapD; x++){
 	let col = []
-	for(let z = 0; z < d; z++){
+	for(let z = 0; z < mapD; z++){
 		let tile = {}
 
 		// if(h[(x * d) + z] < 0.5){
@@ -52,9 +52,9 @@ for(let x = 0; x < d; x++){
 
 let aStarMap = []
 //fill in pathfinding map
-for(let x = 0; x < d; x++){
+for(let x = 0; x < mapD; x++){
 	let aStarMapCol = []
-	for(let z = 0; z < d; z++){
+	for(let z = 0; z < mapD; z++){
 		//z and x have to be reversed for eaststar to
 		//represent map correctly
 		if(map[z][x].walkable == 1)
@@ -83,7 +83,17 @@ wss.on('connection', function connection(ws, req){
 		let h = data.h
 
 		if(h == "login"){
-			players[data.v] = {}
+			let playerID = data.v
+			players[playerID] = {}
+			
+			let chunkSend = {
+				h: "login",
+				v: {
+					mapD: mapD,
+					playerID: playerID
+				}
+			}
+			sendMessage(ws, JSON.stringify(chunkSend))
 		}
 
 		//player request chunk of map around him
@@ -119,6 +129,28 @@ wss.on('connection', function connection(ws, req){
 			}
 
 			sendMessage(ws, JSON.stringify(chunkSend))
+		}
+
+		if(h == "mapData"){
+			let tileX = data.v.tile[0]
+			let tileZ = data.v.tile[1]
+
+			if(map[tileX] === undefined
+				|| map[tileX][tileZ] === undefined)
+			{
+				return
+			}
+
+			let tileSend = {
+				h: "mapData",
+				v: {
+					x: tileX,
+					z: tileZ,
+					tileID: gloss.modelToID[map[tileX][tileZ].name]
+				}
+			}
+
+			sendMessage(ws, JSON.stringify(tileSend))
 		}
 
 		//player request next spot in path
@@ -177,6 +209,7 @@ wss.on('connection', function connection(ws, req){
 
 				players["pathIter"] = 1
 				if(path[players["pathIter"]] !== undefined){
+					console.log(data.v)
 					players[pID].path = path
 
 					let pathSend = {

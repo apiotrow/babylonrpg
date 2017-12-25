@@ -26,59 +26,76 @@ document.addEventListener('DOMContentLoaded', function () {
 	engine.enableOfflineSupport = false //prevent babylon.manifest error
 	let scene = new BABYLON.Scene(engine)
 
-	let ws = new WebSocket("ws://127.0.0.1:5000/")
-
-	let playerTileX = 1
-	let playerTileZ = 3
 	let gameInstance = new Game(
  		engine, canvas, scene,
- 		appW, appH,
- 		ws)
+ 		appW, appH)
+	let ws
+	let tasks
+	let assetsManager = new BABYLON.AssetsManager(scene)
+	assetsManager.useDefaultLoadingScreen = false
 
-	ws.onopen = ()=>{
-		let playerID = Math.random()
-		let mess = {
-			h: "login",
-			v: playerID
-		}
-		gameInstance.ID = playerID
-		ws.send(JSON.stringify(mess))
-
-		let assetsManager = new BABYLON.AssetsManager(scene)
-		assetsManager.useDefaultLoadingScreen = false
-
-		for(let i in gloss.models){
-			assetsManager.addMeshTask(gloss.models[i].modelUnderscore, "", "", gloss.models[i].path)
-		}
-
-		assetsManager.load()
-
-		assetsManager.onFinish = (tasks)=> {
-			gameInstance.initGame(tasks, playerTileX, playerTileZ)
-	 	}
+	for(let i in gloss.models){
+		assetsManager.addMeshTask(gloss.models[i].modelUnderscore, "", "", gloss.models[i].path)
 	}
 
-	ws.onmessage = (event)=> {
-		if(event.data instanceof Blob){
-			//reader for converting from binary to JSON
-			const reader = new FileReader()
+	assetsManager.load()
 
-			//if server sent binary, convert to JSON
-			reader.addEventListener('loadend', (e) => {
-			  	let data = JSON.parse(e.srcElement.result)
-			  	messageAction(data)
-			})
+	assetsManager.onFinish = (tas)=> {
+		tasks = tas
+		ws = new WebSocket("ws://127.0.0.1:5000/")
 
-			reader.readAsText(event.data)
+		ws.onopen = ()=>{
+			let playerID = Math.random()
+			let mess = {
+				h: "login",
+				v: playerID
+			}
+			
+			ws.send(JSON.stringify(mess))
 		}
-		else if(typeof event.data === 'string' || event.data instanceof String){
-			let data = JSON.parse(event.data)
-			messageAction(data)
-		}
-	}
 
+		ws.onmessage = (event)=> {
+			if(event.data instanceof Blob){
+				//reader for converting from binary to JSON
+				const reader = new FileReader()
+
+				//if server sent binary, convert to JSON
+				reader.addEventListener('loadend', (e) => {
+				  	let data = JSON.parse(e.srcElement.result)
+				  	messageAction(data)
+				})
+
+				reader.readAsText(event.data)
+			}
+			else if(typeof event.data === 'string' || event.data instanceof String){
+				let data = JSON.parse(event.data)
+				messageAction(data)
+			}
+		}
+ 	}
+
+	
 	//what to do with message from server
 	function messageAction(data){
+		if(data.h == "login"){
+			let mapD = data.v.mapD
+			let playerID = data.v.playerID
+
+			//TODO get from server 
+			let playerTileX = 1
+			let playerTileZ = 3
+
+			//TODO combine next two lines
+			// let gameInstance = new Game(
+		 // 		engine, canvas, scene,
+		 // 		appW, appH,
+		 // 		ws, mapD)
+
+			gameInstance.ID = playerID
+
+			gameInstance.initGame(tasks, playerTileX, playerTileZ, ws, mapD)
+		}
+
 		if(data.h == "chunk"){
 			gameInstance.renderChunk(data.v.chunk, data.v.r)
 		}
@@ -89,6 +106,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if(data.h == "nextInPath"){
 			gameInstance.prepareNextDest(data.v[0], data.v[1])
+		}
+
+		if(data.h == "mapData"){
+			gameInstance.surroundingMap.placeTile(data.v.x, data.v.z, data.v.tileID)
 		}
 	}
 })

@@ -3,17 +3,20 @@ let perlin = require('perlin-noise')
 let gloss = require("../assets/gloss.json")
 var sizeof = require('sizeof')
 var Player = require('./Player.js')
+var SurroundingMap = require('./SurroundingMap.js')
 // var work = require('webworkify')
 
 class Game{
-	constructor(engine, canvas, scene, appW, appH, ws){
+	constructor(engine, canvas, scene, appW, appH){
 		this.scene = scene
 		this.engine = engine
-		this.ws = ws
+
 		this.appW = appW
 		this.appH = appH
 
 		this.ID
+
+		
 
 		this.chunk = []
 		this.meshes = {}
@@ -36,7 +39,7 @@ class Game{
 		this.camera.fov = 0.5
 		this.camera.minZ = -90
 		
-		this.orthoSize = 6
+		this.orthoSize = 5
 		this.cameraOrtho(this.orthoSize)
 	
 		this.keyState = {}
@@ -81,7 +84,10 @@ class Game{
 		})
 	}
 
-	initGame(tasks, playerTileX, playerTileZ){
+	initGame(tasks, playerTileX, playerTileZ, ws, mapD){
+		this.ws = ws
+		this.mapD = mapD
+
 		//make non-specular material to prevent shine
 		var mat = new BABYLON.StandardMaterial("mat", this.scene)
 		mat.specularColor = BABYLON.Color3.Black()
@@ -111,23 +117,23 @@ class Game{
 		console.log(this.scene.meshes)
 
 		//setup pool
-		this.pool = {}
-		for(let mesh in this.scene.meshes){
-			//account for ground mesh
-			let sourceMeshName
-			if(gloss.models[this.scene.meshes[mesh].name] !== undefined)
-				sourceMeshName = gloss.models[this.scene.meshes[mesh].name].modelUnderscore
+		// this.pool = {}
+		// for(let mesh in this.scene.meshes){
+		// 	//account for ground mesh
+		// 	let sourceMeshName
+		// 	if(gloss.models[this.scene.meshes[mesh].name] !== undefined)
+		// 		sourceMeshName = gloss.models[this.scene.meshes[mesh].name].modelUnderscore
 
-			this.pool[sourceMeshName] = {}
-			this.pool[sourceMeshName].instances = []
-			this.pool[sourceMeshName].iter = 0
-			for(let i = 0; i < 300; i++){
-				let newInstance = this.scene.meshes[mesh].createInstance()
-				this.pool[sourceMeshName].instances.push(newInstance)
-				newInstance.setEnabled(false)
-			}
-		}
-		console.log(this.pool)
+		// 	this.pool[sourceMeshName] = {}
+		// 	this.pool[sourceMeshName].instances = []
+		// 	this.pool[sourceMeshName].iter = 0
+		// 	for(let i = 0; i < 300; i++){
+		// 		let newInstance = this.scene.meshes[mesh].createInstance()
+		// 		this.pool[sourceMeshName].instances.push(newInstance)
+		// 		newInstance.setEnabled(false)
+		// 	}
+		// }
+		// console.log(this.pool)
 
 
 		//init player
@@ -164,9 +170,13 @@ class Game{
 		this.player.selectedDest = [-1, -1]
 
     	//render first chunk around player
-    	this.requestChunk(this.player.tileX, this.player.tileZ)
-
+    	// this.requestChunk(this.player.tileX, this.player.tileZ)
     	this.chunk = []
+
+
+
+    	this.surroundingMap = new SurroundingMap(this, 10, this.mapD)
+
 
 		// for(let x = 0; x < (this.radius * 2) + 1; x++){
 		// 	let col = []
@@ -283,8 +293,8 @@ class Game{
     }
 
 	renderChunk(chunk, r){
-		this.renderChunkFromPool(chunk, r)
-		// this.renderChunkFromNewInstances(chunk, r)
+		// this.renderChunkFromPool(chunk, r)
+		this.renderChunkFromNewInstances(chunk, r)
 		// this.renderChunkFromNewInstancesWebWorker(chunk, r)
 		// this.renderChunkFromNewInstancesPromises(chunk, r)
 	}
@@ -308,7 +318,7 @@ class Game{
     	}
 
     	let count = 0
-		var instancePromises = []
+		// var instancePromises = []
 		for(let x = 0; x < chunk.length; x++){
 			for(let z = 0; z < chunk[x].length; z++){
 
@@ -928,6 +938,7 @@ class Game{
     		0,
     		this.player.destWorld[1] - vehicle.position.z)
     	.normalize().scale(1)
+    	moveInc= moveInc.scale(2) //faster
 
     	if(Math.abs(this.player.destWorld[0] - vehicle.position.x) 
     		> Math.abs(moveInc.x)
@@ -957,7 +968,8 @@ class Game{
 
 	    			if(thing == this.player){
 		    			//request new chunk
-		    			this.requestChunk(thing.tileX, thing.tileZ)
+		    			// this.requestChunk(thing.tileX, thing.tileZ)
+		    			this.surroundingMap.requestMissingTiles(thing.tileX, thing.tileZ)
 		    		}
     			//if next tile IS final spot
     			}else if(thing.nextDest[0] == -1 && thing.nextDest[1] == -1){
@@ -966,7 +978,8 @@ class Game{
 
 	    			if(thing == this.player){
 		    			//request new chunk
-		    			this.requestChunk(thing.tileX, thing.tileZ)
+		    			// this.requestChunk(thing.tileX, thing.tileZ)
+		    			this.surroundingMap.requestMissingTiles(thing.tileX, thing.tileZ)
 		    		}
     			}
 
