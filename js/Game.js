@@ -2,6 +2,7 @@ var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 let gloss = require("../assets/gloss.json")
 var sizeof = require('sizeof')
+var Player = require('./Player.js')
 // var work = require('webworkify')
 
 class Game{
@@ -18,14 +19,10 @@ class Game{
 		this.meshes = {}
 
 		this.spacing = 15
-		this.radius =  10
+		this.radius =  30
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
-
-		this.camera
-
-		this.playerFollow = new BABYLON.Mesh()
 
 		this.scene.clearColor = new BABYLON.Color3(153 / 255, 204 / 255, 255 / 255)
 		
@@ -40,7 +37,7 @@ class Game{
 		this.camera.minZ = -90
 		
 		this.orthoSize = 6
-		// this.cameraOrtho(this.orthoSize)
+		this.cameraOrtho(this.orthoSize)
 	
 		this.keyState = {}
 		var onKeyDown = (evt)=> {
@@ -112,69 +109,9 @@ class Game{
 		}
 
 		//init player
-		this.player = {}
-		this.player.mesh = new BABYLON.Mesh()
-		this.player.animation = "walk"
-		this.player.parent = this.playerFollow
-		this.player.runAnim = function(game){
-			let animFrame = 0
+		this.player = new Player(this, playerTileX, playerTileZ)
 
-			let frameInstances = {}
-			for(let i in gloss.modelHier.char.chad[this.animation]){
-				let animFrameName = gloss.modelHier.char.chad[this.animation][i]
-				let newMesh = game.meshes[animFrameName].createInstance()
-				frameInstances[i] = newMesh
-				newMesh.parent = this.mesh
-			}
-
-			let hat = gloss.modelHier.char.hat
-			let hatMesh = game.meshes[hat].createInstance()
-			hatMesh.parent = this.mesh
-
-			let cape = gloss.modelHier.char.cape
-			let capeMesh = game.meshes[cape].createInstance()
-			capeMesh.parent = this.mesh
-
-			for(let i in frameInstances){
-				frameInstances[i].setEnabled(false)
-			}
-
-			setInterval(()=>{
-				animFrame++
-				if(gloss.modelHier.char.chad[this.animation][animFrame] === undefined)
-					animFrame = 0
-					let animFrameName = gloss.modelHier.char.chad[this.animation][animFrame]
-
-					for(let i in frameInstances){
-						if(i == animFrame){
-							frameInstances[i].setEnabled(true)
-						}
-						else{
-							frameInstances[i].setEnabled(false)
-						}
-					}
-			}, 100)
-		}
-		this.player.runAnim(this)
-		console.log(gloss.modelHier.char.chad.walk)
-		// this.scene.beginAnimation(this.player, 0, 405, true, 1)
-		// this.scene.beginAnimation(this.player.skeleton, 0, 5, true, 0.1)
-		this.player.tileX = playerTileX
-		this.player.tileZ = playerTileZ
-		this.playerFollow.position.x = this.tileToWorld(this.player.tileX)
-		this.playerFollow.position.z = this.tileToWorld(this.player.tileZ)
-		this.player.newAngle = 90 * (Math.PI / 180)
-
-		//if null, we're on final tile in path.
-		//if -1, -1, we're on second-to-last tile in path.
-		//if anything else, we're on another spot in path.
-		this.player.nextDest = null
-
-		// this.player.position.x = this.tileToWorld(this.player.tileX)
-		// this.player.position.z = this.tileToWorld(this.player.tileZ)
-		this.player.mesh.parent = this.playerFollow
-
-		this.camera.lockedTarget = this.playerFollow
+		this.camera.lockedTarget = this.player.vehicle
 		this.camera.cameraAcceleration = 0.4
 		// this.camera.maxCameraSpeed = 1
 		this.camera.speed = 20
@@ -325,9 +262,9 @@ class Game{
 
 	renderChunk(chunk, r){
 		// this.renderChunkFromPool(chunk, r)
-		this.renderChunkFromNewInstances(chunk, r)
+		// this.renderChunkFromNewInstances(chunk, r)
 		// this.renderChunkFromNewInstancesWebWorker(chunk, r)
-		// this.renderChunkFromNewInstancesPromises(chunk, r)
+		this.renderChunkFromNewInstancesPromises(chunk, r)
 	}
 
 	renderChunkFromNewInstancesPromises(chunk, r){
@@ -578,6 +515,19 @@ class Game{
 				this.chunk[x][z] = newInstance
 			}
 		}
+
+		// //merge meshes (must be clones, not instances)
+		// let meshes = []
+		// for(let x = 0; x < this.chunk.length; x++){
+		// 	for(let z = 0; z < this.chunk[x].length; z++){
+		// 		if(this.chunk[x][z] !== null){
+		// 			meshes.push(this.chunk[x][z])
+		// 		}
+		// 	}
+		// }
+		// if(meshes.length > 1){
+		// 	var newMesh = BABYLON.Mesh.MergeMeshes(meshes, true, true)
+		// }
 	}
 
 	/**
@@ -1051,7 +1001,7 @@ class Game{
 			this.camera.lockedTarget = undefined
 		}
 		if(this.keyState['c'] == true){
-			this.camera.lockedTarget = this.playerFollow
+			this.camera.lockedTarget = this.player.vehicle
 		}
 
 		this.mouseClickBehavior()
@@ -1061,7 +1011,7 @@ class Game{
 		this.updateThingRotation(this.player)
 
 	    //have ground object follow player
-		this.ground.position = this.playerFollow.position
+		this.ground.position = this.player.vehicle.position
 
 		this.player.mesh.position.y = 2
 
