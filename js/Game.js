@@ -19,7 +19,7 @@ class Game{
 		this.meshes = {}
 
 		this.spacing = 15
-		this.radius =  30
+		this.radius =  10
 
 		this.ground = BABYLON.Mesh.CreateGround("ground", 1000, 1000, 10, scene)
 		this.ground.isPickable = true
@@ -107,6 +107,28 @@ class Game{
 			//add mesh to mesh holder
 			this.meshes[meshName] = mesh
 		}
+
+		console.log(this.scene.meshes)
+
+		//setup pool
+		this.pool = {}
+		for(let mesh in this.scene.meshes){
+			//account for ground mesh
+			let sourceMeshName
+			if(gloss.models[this.scene.meshes[mesh].name] !== undefined)
+				sourceMeshName = gloss.models[this.scene.meshes[mesh].name].modelUnderscore
+
+			this.pool[sourceMeshName] = {}
+			this.pool[sourceMeshName].instances = []
+			this.pool[sourceMeshName].iter = 0
+			for(let i = 0; i < 300; i++){
+				let newInstance = this.scene.meshes[mesh].createInstance()
+				this.pool[sourceMeshName].instances.push(newInstance)
+				newInstance.setEnabled(false)
+			}
+		}
+		console.log(this.pool)
+
 
 		//init player
 		this.player = new Player(this, playerTileX, playerTileZ)
@@ -261,10 +283,10 @@ class Game{
     }
 
 	renderChunk(chunk, r){
-		// this.renderChunkFromPool(chunk, r)
+		this.renderChunkFromPool(chunk, r)
 		// this.renderChunkFromNewInstances(chunk, r)
 		// this.renderChunkFromNewInstancesWebWorker(chunk, r)
-		this.renderChunkFromNewInstancesPromises(chunk, r)
+		// this.renderChunkFromNewInstancesPromises(chunk, r)
 	}
 
 	renderChunkFromNewInstancesPromises(chunk, r){
@@ -334,7 +356,7 @@ class Game{
 	/**
 	 * Render the tiles around the player by a certain radius
 	 */ 
-	renderChunkFromPool(chunk, r){
+	renderChunkFromPool(serverMapData, r){
 		//if this.chunk hasn't been initialized (game just
     	//started), or if new chunk is a different dimension 
     	//than previous chunk, remake this.chunk 
@@ -352,29 +374,38 @@ class Game{
 			}
     	}
 
-		for(let x = 0; x < this.chunk.length; x++){
-			for(let z = 0; z < this.chunk[x].length; z++){
-				if(this.chunk[x][z] !== null){
-					this.chunk[x][z].setEnabled(false)
-				}
-			}
-		}
+		// for(let x = 0; x < this.chunk.length; x++){
+		// 	for(let z = 0; z < this.chunk[x].length; z++){
+		// 		if(this.chunk[x][z] !== null){
+		// 			this.chunk[x][z].setEnabled(false)
+		// 		}
+		// 	}
+		// }
 
-		let poolIter = 0
-		for(let x = 0; x < chunk.length; x++){
-			for(let z = 0; z < chunk[x].length; z++){
+		// let poolIter = 0
+		for(let x = 0; x < serverMapData.length; x++){
+			for(let z = 0; z < serverMapData[x].length; z++){
 
 				//if tile is off map it will be undefined
-				if(chunk[x] === null
-					|| chunk[x][z] === null)
+				if(serverMapData[x] === null
+					|| serverMapData[x][z] === null)
 				{
 					continue
 				}
 
 				//convert model ID to model name
-				let modelName = gloss.IDToModel[chunk[x][z]]
+				let modelName = gloss.IDToModel[serverMapData[x][z]]
 
-				let newInstance = this.pool["blue"][poolIter++]
+				let instancePoolIter = this.pool[modelName].iter
+				
+				let newInstance = this.pool[modelName]["instances"][instancePoolIter]
+
+				//if not more chunks in pool
+				if(newInstance === undefined)
+					continue
+
+				this.pool[modelName].iter++
+				newInstance.setEnabled(true)
 
 				newInstance.tileX = this.player.tileX + (x - r)
 				newInstance.tileZ = this.player.tileZ + (z - r)
@@ -386,6 +417,10 @@ class Game{
 				this.chunk[x][z] = newInstance
 				newInstance.setEnabled(true)
 			}
+		}
+
+		for(let p in this.pool){
+			this.pool[p].iter = 0
 		}
 	}
 
