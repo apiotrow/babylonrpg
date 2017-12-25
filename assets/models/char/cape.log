@@ -4,18 +4,18 @@
 		selected layers only:  false
 		flat shading entire scene:  false
 		inline textures:  false
-		texture directory:  D:\code\babylonrpg\assets\\models\\char\\chad\\walk\
+		texture directory:  D:\code\babylonrpg\assets\\models\\char\
 	Python World class constructor completed
 	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
-	processing begun of mesh:  1
+	processing begun of mesh:  cape
 		WARNING: No materials have been assigned: 
-		num positions      :  569
-		num normals        :  569
+		num positions      :  64
+		num normals        :  64
 		num uvs            :  0
 		num uvs2           :  0
-		num colors         :  2276
-		num indices        :  2814
+		num colors         :  256
+		num indices        :  372
 ========= Writing of scene file started =========
 ========= Writing of scene file completed =========
 ========= end of processing =========
-elapsed time:  0 min, 0.0481 secs
+elapsed time:  0 min, 0.0411 secs

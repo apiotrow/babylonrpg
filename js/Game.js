@@ -2,7 +2,7 @@ var BABYLON = require('babylonjs')
 let perlin = require('perlin-noise')
 let gloss = require("../assets/gloss.json")
 var sizeof = require('sizeof')
-var work = require('webworkify')
+// var work = require('webworkify')
 
 class Game{
 	constructor(engine, canvas, scene, appW, appH, ws){
@@ -31,14 +31,15 @@ class Game{
 		
 		this.camera = new BABYLON.FollowCamera(
 			"FollowCam", 
-			new BABYLON.Vector3(0, 10, -10), 
+			new BABYLON.Vector3(0, 100, -100), 
 			scene)
 		this.camera.rotationOffset = 225
-		this.camera.heightOffset = 200
-		this.camera.radius = 200
+		this.camera.heightOffset = 500
+		this.camera.radius = 500
+		this.camera.fov = 0.5
 		this.camera.minZ = -90
 		
-		this.orthoSize = 4
+		this.orthoSize = 6
 		// this.cameraOrtho(this.orthoSize)
 	
 		this.keyState = {}
@@ -113,7 +114,6 @@ class Game{
 		//init player
 		this.player = {}
 		this.player.mesh = new BABYLON.Mesh()
-		console.log(this.player)
 		this.player.animation = "walk"
 		this.player.parent = this.playerFollow
 		this.player.runAnim = function(game){
@@ -126,14 +126,18 @@ class Game{
 				frameInstances[i] = newMesh
 				newMesh.parent = this.mesh
 			}
-			console.log(frameInstances[0])
-			// this.mesh = frameInstances[0]
+
+			let hat = gloss.modelHier.char.hat
+			let hatMesh = game.meshes[hat].createInstance()
+			hatMesh.parent = this.mesh
+
+			let cape = gloss.modelHier.char.cape
+			let capeMesh = game.meshes[cape].createInstance()
+			capeMesh.parent = this.mesh
+
 			for(let i in frameInstances){
-				// frameInstances[i].setEnabled(false)
-				// frameInstances[i].isVisible = false
-				// frameInstances[i].Visibility = 0
+				frameInstances[i].setEnabled(false)
 			}
-			// frameInstances[0].setEnabled(true)
 
 			setInterval(()=>{
 				animFrame++
@@ -142,26 +146,14 @@ class Game{
 					let animFrameName = gloss.modelHier.char.chad[this.animation][animFrame]
 
 					for(let i in frameInstances){
-						// console.log(animFrame + " and " + i)
 						if(i == animFrame){
 							frameInstances[i].setEnabled(true)
 						}
 						else{
-							// this.mesh = frameInstances[i]
 							frameInstances[i].setEnabled(false)
 						}
 					}
-					
-					// let newMesh = game.meshes[animFrameName].createInstance()
-					// newMesh.parent = this.mesh.parent
-					// this.mesh.dispose()
-					// this.mesh = newMesh
-					// this.mesh.position.y = 2
-
-
-					// this.mesh.parent = 
-					// console.log(animFrameName)
-			}, 200)
+			}, 100)
 		}
 		this.player.runAnim(this)
 		console.log(gloss.modelHier.char.chad.walk)
@@ -180,15 +172,24 @@ class Game{
 
 		// this.player.position.x = this.tileToWorld(this.player.tileX)
 		// this.player.position.z = this.tileToWorld(this.player.tileZ)
-		
 		this.player.mesh.parent = this.playerFollow
 
 		this.camera.lockedTarget = this.playerFollow
-		this.camera.cameraAcceleration = 0.3
+		this.camera.cameraAcceleration = 0.4
 		// this.camera.maxCameraSpeed = 1
-		this.camera.speed = 0.1
+		this.camera.speed = 20
+		// this.camera.inertia = 40
+		// this.camera.cameraRigMode = 2
 
 		console.log(this.camera)
+
+		let test = this.meshes.building_chamonix
+		test.position.x = 200
+		test.position.z = 200
+		test.position.y = 2
+		test.scaling.x = 2
+		test.scaling.z = 2
+		test.scaling.y = 2
 
 		//start update loop
 		this.engine.runRenderLoop(()=> {
@@ -560,6 +561,7 @@ class Game{
 				{
 					continue
 				}
+
 
 				//convert model ID to model name
 				let modelName = gloss.IDToModel[chunk[x][z]]
@@ -1045,6 +1047,13 @@ class Game{
 			this.camera.heightOffset += 2
 		}
 
+		if(this.keyState['v'] == true){
+			this.camera.lockedTarget = undefined
+		}
+		if(this.keyState['c'] == true){
+			this.camera.lockedTarget = this.playerFollow
+		}
+
 		this.mouseClickBehavior()
 
 		this.moveThing(this.player)
@@ -1057,7 +1066,8 @@ class Game{
 		this.player.mesh.position.y = 2
 
 		//update camera height and radius from player
-		// this.camera.radius = 200
+		// this.camera.position.x = this.playerFollow.position.x
+		// this.camera.position.z = this.playerFollow.position.z - 90
 	}
 }
 

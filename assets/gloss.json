@@ -1,161 +1,185 @@
 {
     "modelHier": {
         "building": {
-            "grass": "building_grass",
-            "wall1": "building_wall1",
-            "tree": "building_tree",
             "blue": "building_blue",
+            "wall1": "building_wall1",
+            "grass": "building_grass",
             "roof1": "building_roof1",
+            "chamonix": "building_chamonix",
+            "tree": "building_tree",
             "chair1": "building_chair1"
         },
         "char": {
             "chad": {
                 "parts": {
+                    "larm": "char_chad_parts_larm",
+                    "head": "char_chad_parts_head",
                     "rleg": "char_chad_parts_rleg",
-                    "torso": "char_chad_parts_torso",
                     "jaw": "char_chad_parts_jaw",
                     "lleg": "char_chad_parts_lleg",
                     "rarm": "char_chad_parts_rarm",
-                    "head": "char_chad_parts_head",
-                    "larm": "char_chad_parts_larm"
+                    "torso": "char_chad_parts_torso"
+                },
+                "idle": {
+                    "0": "char_chad_idle_0"
                 },
                 "walk": {
                     "0": "char_chad_walk_0",
                     "1": "char_chad_walk_1",
                     "2": "char_chad_walk_2",
                     "3": "char_chad_walk_3"
-                },
-                "idle": {
-                    "0": "char_chad_idle_0"
                 }
-            }
+            },
+            "cape": "char_cape",
+            "hat": "char_hat"
         }
     },
     "models": {
         "0": {
             "path": "./assets/models/char/chad/walk/0.babylon",
-            "ID": 17,
+            "ID": 10,
             "modelUnderscore": "char_chad_walk_0"
         },
         "1": {
             "path": "./assets/models/char/chad/walk/1.babylon",
-            "ID": 4,
+            "ID": 6,
             "modelUnderscore": "char_chad_walk_1"
         },
         "2": {
             "path": "./assets/models/char/chad/walk/2.babylon",
-            "ID": 10,
+            "ID": 19,
             "modelUnderscore": "char_chad_walk_2"
         },
         "3": {
             "path": "./assets/models/char/chad/walk/3.babylon",
-            "ID": 6,
+            "ID": 12,
             "modelUnderscore": "char_chad_walk_3"
         },
-        "grass": {
-            "path": "./assets/models/building/grass.babylon",
+        "blue": {
+            "path": "./assets/models/building/blue.babylon",
             "ID": 0,
-            "modelUnderscore": "building_grass"
+            "modelUnderscore": "building_blue"
         },
-        "rleg": {
-            "path": "./assets/models/char/chad/parts/rleg.babylon",
+        "larm": {
+            "path": "./assets/models/char/chad/parts/larm.babylon",
             "ID": 1,
-            "modelUnderscore": "char_chad_parts_rleg"
-        },
-        "torso": {
-            "path": "./assets/models/char/chad/parts/torso.babylon",
-            "ID": 2,
-            "modelUnderscore": "char_chad_parts_torso"
+            "modelUnderscore": "char_chad_parts_larm"
         },
         "wall1": {
             "path": "./assets/models/building/wall1.babylon",
-            "ID": 3,
+            "ID": 2,
             "modelUnderscore": "building_wall1"
         },
-        "tree": {
-            "path": "./assets/models/building/tree.babylon",
+        "grass": {
+            "path": "./assets/models/building/grass.babylon",
+            "ID": 3,
+            "modelUnderscore": "building_grass"
+        },
+        "roof1": {
+            "path": "./assets/models/building/roof1.babylon",
             "ID": 5,
-            "modelUnderscore": "building_tree"
+            "modelUnderscore": "building_roof1"
+        },
+        "chamonix": {
+            "path": "./assets/models/building/chamonix.babylon",
+            "ID": 7,
+            "modelUnderscore": "building_chamonix"
+        },
+        "cape": {
+            "path": "./assets/models/char/cape.babylon",
+            "ID": 8,
+            "modelUnderscore": "char_cape"
+        },
+        "head": {
+            "path": "./assets/models/char/chad/parts/head.babylon",
+            "ID": 9,
+            "modelUnderscore": "char_chad_parts_head"
+        },
+        "rleg": {
+            "path": "./assets/models/char/chad/parts/rleg.babylon",
+            "ID": 11,
+            "modelUnderscore": "char_chad_parts_rleg"
         },
         "jaw": {
             "path": "./assets/models/char/chad/parts/jaw.babylon",
-            "ID": 8,
+            "ID": 13,
             "modelUnderscore": "char_chad_parts_jaw"
         },
         "lleg": {
             "path": "./assets/models/char/chad/parts/lleg.babylon",
-            "ID": 9,
+            "ID": 14,
             "modelUnderscore": "char_chad_parts_lleg"
         },
-        "blue": {
-            "path": "./assets/models/building/blue.babylon",
-            "ID": 11,
-            "modelUnderscore": "building_blue"
+        "tree": {
+            "path": "./assets/models/building/tree.babylon",
+            "ID": 15,
+            "modelUnderscore": "building_tree"
         },
-        "roof1": {
-            "path": "./assets/models/building/roof1.babylon",
-            "ID": 12,
-            "modelUnderscore": "building_roof1"
-        },
-        "chair1": {
-            "path": "./assets/models/building/chair1.babylon",
-            "ID": 13,
-            "modelUnderscore": "building_chair1"
+        "hat": {
+            "path": "./assets/models/char/hat.babylon",
+            "ID": 16,
+            "modelUnderscore": "char_hat"
         },
         "rarm": {
             "path": "./assets/models/char/chad/parts/rarm.babylon",
-            "ID": 14,
+            "ID": 17,
             "modelUnderscore": "char_chad_parts_rarm"
         },
-        "head": {
-            "path": "./assets/models/char/chad/parts/head.babylon",
-            "ID": 15,
-            "modelUnderscore": "char_chad_parts_head"
+        "torso": {
+            "path": "./assets/models/char/chad/parts/torso.babylon",
+            "ID": 18,
+            "modelUnderscore": "char_chad_parts_torso"
         },
-        "larm": {
-            "path": "./assets/models/char/chad/parts/larm.babylon",
-            "ID": 16,
-            "modelUnderscore": "char_chad_parts_larm"
+        "chair1": {
+            "path": "./assets/models/building/chair1.babylon",
+            "ID": 20,
+            "modelUnderscore": "building_chair1"
         }
     },
     "modelToID": {
-        "building_grass": 0,
-        "char_chad_parts_rleg": 1,
-        "char_chad_parts_torso": 2,
-        "building_wall1": 3,
-        "char_chad_walk_1": 4,
-        "building_tree": 5,
-        "char_chad_walk_3": 6,
-        "char_chad_idle_0": 7,
-        "char_chad_parts_jaw": 8,
-        "char_chad_parts_lleg": 9,
-        "char_chad_walk_2": 10,
-        "building_blue": 11,
-        "building_roof1": 12,
-        "building_chair1": 13,
-        "char_chad_parts_rarm": 14,
-        "char_chad_parts_head": 15,
-        "char_chad_parts_larm": 16,
-        "char_chad_walk_0": 17
+        "building_blue": 0,
+        "char_chad_parts_larm": 1,
+        "building_wall1": 2,
+        "building_grass": 3,
+        "char_chad_idle_0": 4,
+        "building_roof1": 5,
+        "char_chad_walk_1": 6,
+        "building_chamonix": 7,
+        "char_cape": 8,
+        "char_chad_parts_head": 9,
+        "char_chad_walk_0": 10,
+        "char_chad_parts_rleg": 11,
+        "char_chad_walk_3": 12,
+        "char_chad_parts_jaw": 13,
+        "char_chad_parts_lleg": 14,
+        "building_tree": 15,
+        "char_hat": 16,
+        "char_chad_parts_rarm": 17,
+        "char_chad_parts_torso": 18,
+        "char_chad_walk_2": 19,
+        "building_chair1": 20
     },
     "IDToModel": {
-        "0": "building_grass",
-        "1": "char_chad_parts_rleg",
-        "2": "char_chad_parts_torso",
-        "3": "building_wall1",
-        "4": "char_chad_walk_1",
-        "5": "building_tree",
-        "6": "char_chad_walk_3",
-        "7": "char_chad_idle_0",
-        "8": "char_chad_parts_jaw",
-        "9": "char_chad_parts_lleg",
-        "10": "char_chad_walk_2",
-        "11": "building_blue",
-        "12": "building_roof1",
-        "13": "building_chair1",
-        "14": "char_chad_parts_rarm",
-        "15": "char_chad_parts_head",
-        "16": "char_chad_parts_larm",
-        "17": "char_chad_walk_0"
+        "0": "building_blue",
+        "1": "char_chad_parts_larm",
+        "2": "building_wall1",
+        "3": "building_grass",
+        "4": "char_chad_idle_0",
+        "5": "building_roof1",
+        "6": "char_chad_walk_1",
+        "7": "building_chamonix",
+        "8": "char_cape",
+        "9": "char_chad_parts_head",
+        "10": "char_chad_walk_0",
+        "11": "char_chad_parts_rleg",
+        "12": "char_chad_walk_3",
+        "13": "char_chad_parts_jaw",
+        "14": "char_chad_parts_lleg",
+        "15": "building_tree",
+        "16": "char_hat",
+        "17": "char_chad_parts_rarm",
+        "18": "char_chad_parts_torso",
+        "19": "char_chad_walk_2",
+        "20": "building_chair1"
     }
 }
